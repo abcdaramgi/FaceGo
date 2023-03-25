@@ -49,13 +49,13 @@ while cap.isOpened():
     frame = gaze.annotated_frame()
     text = ""
     if gaze.is_blinking():
-        text = "Blinking"
+        text = "Eye Blinking"
     elif gaze.is_right():
-        text = "Looking right"
+        text = "Eye Right"
     elif gaze.is_left():
-        text = "Looking left"
+        text = "Eye left"
     elif gaze.is_center():
-        text = "Looking center"
+        text = "Eye center"
     left_pupil = gaze.pupil_left_coords()
     right_pupil = gaze.pupil_right_coords()
     cv2.putText(frame, text, (90, 60), cv2.FONT_HERSHEY_DUPLEX, 1.6, (147, 58, 31), 2)
@@ -116,13 +116,13 @@ while cap.isOpened():
 
             # See where the user's head tilting
             if y < -10:
-                text = "Looking Left"
+                text = "Head Left"
             elif y > 10:
-                text = "Looking Right"
+                text = "Head Right"
             elif x < -10:
-                text = "Looking Down"
+                text = "Head Down"
             else:
-                text = "Forward"
+                text = "Head Forward"
 
             # Display the nose direction
             nose_3d_projection, jacobian = cv2.projectPoints(nose_3d, rot_vec, trans_vec, cam_matrix, dist_matrix)
