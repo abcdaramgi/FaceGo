@@ -2,6 +2,13 @@ import cv2 #영상 처리
 import mediapipe as mp # 머신러닝 프레임워크
 import numpy as np # 다차원 배열 처리
 from gaze_tracking import GazeTracking 
+import serial
+import time
+import math
+
+# 시리얼 통신 설정
+# port = "/dev/ttyACM0"  # 아두이노 시리얼 포트에 따라 변경
+# ser = serial.Serial(port, 9600, timeout=1)  # 아두이노와 9600 bps로 시리얼 통신, timeout은 1초로 설정
 
 # GazeTracking 선언
 gaze = GazeTracking()
@@ -44,8 +51,22 @@ while cap.isOpened():
 
     # 시선 정보 업데이트
     gaze.refresh(frame)
+    # horizontal_ratio = gaze.horizontal_ratio()
+    # vertical_ratio = gaze.vertical_ratio()
+    
+    if gaze.horizontal_ratio() is not None:
+        horizontal_ratio = round(gaze.horizontal_ratio(), 4)
+    else:
+        horizontal_ratio = 0.0  # 예외 상황 처리
+
+    if gaze.vertical_ratio() is not None:
+        vertical_ratio = round(gaze.horizontal_ratio(), 4)
+    else:
+        vertical_ratio = 0.0  # 예외 상황 처리
+
     frame = gaze.annotated_frame() #업데이트된 프레임에 시선 정보 추가하여 보여줌
     text = ""
+    
     if gaze.is_blinking(): # 눈 깜빡일 때
         text = "Eye Blinking"
     elif gaze.is_right(): # 오른쪽 볼 때
@@ -56,9 +77,26 @@ while cap.isOpened():
         text = "Eye center"
     left_pupil = gaze.pupil_left_coords() # 왼쪽 눈동자 좌표 가져오기
     right_pupil = gaze.pupil_right_coords() # 오른쪽 눈동자 좌표 가져오기
-    cv2.putText(frame, text, (90, 60), cv2.FONT_HERSHEY_DUPLEX, 1.6, (147, 58, 31), 2) # 프레임에 시선 정보 텍스트 추가
-    cv2.putText(frame, "Left pupil:  " + str(left_pupil), (90, 130), cv2.FONT_HERSHEY_DUPLEX, 0.9, (147, 58, 31), 1) # 왼쪽 눈동자 좌표
-    cv2.putText(frame, "Right pupil: " + str(right_pupil), (90, 165), cv2.FONT_HERSHEY_DUPLEX, 0.9, (147, 58, 31), 1) # 오른쪽 눈동자 좌표 
+
+    cv2.putText(frame, text, (70, 60), cv2.FONT_HERSHEY_DUPLEX, 1.6, (147, 58, 31), 2) # 프레임에 시선 정보 텍스트 추가
+    cv2.putText(frame, "Left pupil:  " + str(left_pupil), (70, 130), cv2.FONT_HERSHEY_DUPLEX, 0.9, (147, 58, 31), 1) # 왼쪽 눈동자 좌표
+    cv2.putText(frame, "Right pupil: " + str(right_pupil), (70, 165), cv2.FONT_HERSHEY_DUPLEX, 0.9, (147, 58, 31), 1) # 오른쪽 눈동자 좌표
+    cv2.putText(frame, "Horizontal Ratio: " + str(horizontal_ratio), (70, 195), cv2.FONT_HERSHEY_DUPLEX, 0.9, (147, 58, 31), 1) # 시선의 수평 방향 0~1
+    cv2.putText(frame, "Vertical Ratio: " + str(vertical_ratio), (70, 225), cv2.FONT_HERSHEY_DUPLEX, 0.9, (147, 58, 31), 1) # 시선의 수직 방향 0~1
+
+    # #RC카를 제어하는 코드
+    # if horizontal_ratio < 0.5:
+    #     # 좌회전
+    #     ser.write(b'1')
+    # elif horizontal_ratio > 0.7:
+    #     # 우회전
+    #     ser.write(b'2')
+    # else:
+    #     # 직진
+    #     ser.write(b'0')
+
+    # time.sleep(0.1)  # 100ms 대기 후 반복
+
 
     # Get the head pose using FaceMesh
     img_h, img_w, img_c = frame.shape # 이미지 높이, 너비, 채널
