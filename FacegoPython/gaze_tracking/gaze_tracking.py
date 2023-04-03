@@ -8,28 +8,27 @@ from .calibration import Calibration
 
 class GazeTracking(object):
     """
-    This class tracks the user's gaze.
-    It provides useful information like the position of the eyes
-    and pupils and allows to know if the eyes are open or closed
+    사용자 시선 추적 클래스
+    눈의 위치, 동공의 위치, 눈이 열려있는지/닫혀있는지를 알려주는 등 유용한 정보를 제공
     """
 
     def __init__(self):
-        self.frame = None
-        self.eye_left = None
-        self.eye_right = None
-        self.calibration = Calibration()
+        self.frame = None # 현재 처리 중인 프레임
+        self.eye_left = None # 왼쪽 눈
+        self.eye_right = None # 오른쪽 눈
+        self.calibration = Calibration() # C
 
-        # _face_detector is used to detect faces
+        # _face_detector는 얼굴 감지하는 데 사용
         self._face_detector = dlib.get_frontal_face_detector()
 
-        # _predictor is used to get facial landmarks of a given face
+         # _predictor는 주어진 얼굴의 얼굴 랜드마크(facial landmarks)를 가져오는 데 사용
         cwd = os.path.abspath(os.path.dirname(__file__))
         model_path = os.path.abspath(os.path.join(cwd, "trained_models/shape_predictor_68_face_landmarks.dat"))
         self._predictor = dlib.shape_predictor(model_path)
 
     @property
     def pupils_located(self):
-        """Check that the pupils have been located"""
+        """눈동자가 위치했는지 확인"""
         try:
             int(self.eye_left.pupil.x)
             int(self.eye_left.pupil.y)
@@ -40,7 +39,7 @@ class GazeTracking(object):
             return False
 
     def _analyze(self):
-        """Detects the face and initialize Eye objects"""
+        """얼굴을 탐지하고 눈동자 객체 초기화"""
         frame = cv2.cvtColor(self.frame, cv2.COLOR_BGR2GRAY)
         faces = self._face_detector(frame)
 
@@ -54,32 +53,32 @@ class GazeTracking(object):
             self.eye_right = None
 
     def refresh(self, frame):
-        """Refreshes the frame and analyzes it.
+        """프레임을 새로고침하고 분석.
 
         Arguments:
-            frame (numpy.ndarray): The frame to analyze
+            frame (numpy.ndarray): 분석할 프레임
         """
         self.frame = frame
         self._analyze()
 
     def pupil_left_coords(self):
-        """Returns the coordinates of the left pupil"""
+        """왼쪽 눈의 동공 좌표 반환"""
         if self.pupils_located:
             x = self.eye_left.origin[0] + self.eye_left.pupil.x
             y = self.eye_left.origin[1] + self.eye_left.pupil.y
             return (x, y)
 
     def pupil_right_coords(self):
-        """Returns the coordinates of the right pupil"""
+        """오른쪽 눈의 동공 좌표 반환"""
         if self.pupils_located:
             x = self.eye_right.origin[0] + self.eye_right.pupil.x
             y = self.eye_right.origin[1] + self.eye_right.pupil.y
             return (x, y)
 
     def horizontal_ratio(self):
-        """Returns a number between 0.0 and 1.0 that indicates the
-        horizontal direction of the gaze. The extreme right is 0.0,
-        the center is 0.5 and the extreme left is 1.0
+        """Returns a number between 0.0 and 1.0 that indicates the 0.0 ~ 1.0
+        horizontal direction of the gaze. The extreme right is 0.0, 완전 오른쪽은 0.0
+        the center is 0.5 and the extreme left is 1.0 센터는 0.5 완전 왼쪽은 1.0
         """
         if self.pupils_located:
             pupil_left = self.eye_left.pupil.x / (self.eye_left.center[0] * 2 - 10)

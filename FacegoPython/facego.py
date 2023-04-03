@@ -53,7 +53,9 @@ while cap.isOpened():
     gaze.refresh(frame)
     # horizontal_ratio = gaze.horizontal_ratio()
     # vertical_ratio = gaze.vertical_ratio()
-    
+
+
+
     if gaze.horizontal_ratio() is not None:
         horizontal_ratio = round(gaze.horizontal_ratio(), 4)
     else:
@@ -78,12 +80,12 @@ while cap.isOpened():
     left_pupil = gaze.pupil_left_coords() # 왼쪽 눈동자 좌표 가져오기
     right_pupil = gaze.pupil_right_coords() # 오른쪽 눈동자 좌표 가져오기
 
-    cv2.putText(frame, text, (70, 60), cv2.FONT_HERSHEY_DUPLEX, 1.6, (147, 58, 31), 2) # 프레임에 시선 정보 텍스트 추가
-    cv2.putText(frame, "Left pupil:  " + str(left_pupil), (70, 130), cv2.FONT_HERSHEY_DUPLEX, 0.9, (147, 58, 31), 1) # 왼쪽 눈동자 좌표
-    cv2.putText(frame, "Right pupil: " + str(right_pupil), (70, 165), cv2.FONT_HERSHEY_DUPLEX, 0.9, (147, 58, 31), 1) # 오른쪽 눈동자 좌표
-    cv2.putText(frame, "Horizontal Ratio: " + str(horizontal_ratio), (70, 195), cv2.FONT_HERSHEY_DUPLEX, 0.9, (147, 58, 31), 1) # 시선의 수평 방향 0~1
-    cv2.putText(frame, "Vertical Ratio: " + str(vertical_ratio), (70, 225), cv2.FONT_HERSHEY_DUPLEX, 0.9, (147, 58, 31), 1) # 시선의 수직 방향 0~1
-
+    cv2.putText(frame, text, (90, 60), cv2.FONT_HERSHEY_DUPLEX, 1.6, (147, 58, 31), 2) # 프레임에 시선 정보 텍스트 추가
+    cv2.putText(frame, "Left pupil:  " + str(left_pupil), (90, 130), cv2.FONT_HERSHEY_DUPLEX, 0.9, (147, 58, 31), 1) # 왼쪽 눈동자 좌표
+    cv2.putText(frame, "Right pupil: " + str(right_pupil), (90, 165), cv2.FONT_HERSHEY_DUPLEX, 0.9, (147, 58, 31), 1) # 오른쪽 눈동자 좌표
+    cv2.putText(frame, "Horizontal Ratio: " + str(horizontal_ratio), (90, 195), cv2.FONT_HERSHEY_DUPLEX, 0.9, (147, 58, 31), 1) # 시선의 수평 방향 0~1
+    cv2.putText(frame, "Vertical Ratio: " + str(vertical_ratio), (90, 225), cv2.FONT_HERSHEY_DUPLEX, 0.9, (147, 58, 31), 1) # 시선의 수직 방향 0~1
+    
     # #RC카를 제어하는 코드
     # if horizontal_ratio < 0.5:
     #     # 좌회전
@@ -96,7 +98,6 @@ while cap.isOpened():
     #     ser.write(b'0')
 
     # time.sleep(0.1)  # 100ms 대기 후 반복
-
 
     # Get the head pose using FaceMesh
     img_h, img_w, img_c = frame.shape # 이미지 높이, 너비, 채널
