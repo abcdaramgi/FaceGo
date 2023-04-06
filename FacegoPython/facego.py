@@ -20,6 +20,20 @@ face_mesh = mp_face_mesh.FaceMesh(min_detection_confidence=0.5, min_tracking_con
 # 비디오 캡쳐 객체 초기화
 cap = cv2.VideoCapture(0)
 
+# 원본 동영상 크기 정보
+w = cap.get(cv2.CAP_PROP_FRAME_WIDTH)
+h = cap.get(cv2.CAP_PROP_FRAME_HEIGHT)
+print("원본 동영상 너비(가로) : {}, 높이(세로) : {}".format(w, h))
+
+# 동영상 크기 변환
+cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1920) # 가로
+cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 1080) # 세로
+
+# 변환된 동영상 크기 정보
+w = cap.get(cv2.CAP_PROP_FRAME_WIDTH)
+h = cap.get(cv2.CAP_PROP_FRAME_HEIGHT)
+print("변환된 동영상 너비(가로) : {}, 높이(세로) : {}".format(w, h))
+
 # 웹 캠이 켜지지 않았다면
 if not cap.isOpened():
     print("Could not open webcam")
@@ -68,6 +82,7 @@ while cap.isOpened():
 
     frame = gaze.annotated_frame() #업데이트된 프레임에 시선 정보 추가하여 보여줌
     text = ""
+    text2 = ""
     
     if gaze.is_blinking(): # 눈 깜빡일 때
         text = "Eye Blinking"
@@ -146,18 +161,21 @@ while cap.isOpened():
             # Y축 회전 각도 가져오기
             x = angles[0] * 360
             y = angles[1] * 360
+            
+            printx = x;
+            printy = y;
 
             # print(y)
 
             # 머리 기울기 확인
-            if y < -10:
-                text = "Head Left"
-            elif y > 10:
-                text = "Head Right"
-            elif x < -10:
-                text = "Head Down"
+            if y < -5:
+                text2 = "Head Left"
+            elif y > 5:
+                text2 = "Head Right"
+            elif x < -2:
+                text2 = "Head Down"
             else:
-                text = "Head Forward"
+                text2 = "Head Forward"
 
             # 코 방향 표시
             nose_3d_projection, jacobian = cv2.projectPoints(nose_3d, rot_vec, trans_vec, cam_matrix, dist_matrix)
@@ -170,9 +188,10 @@ while cap.isOpened():
             cv2.line(frame, p1, p2, (255, 0, 0), 2)
 
             # 이미지 위에 텍스트 추가
-            cv2.putText(frame, text, (20, 20), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
+            cv2.putText(frame, text2, (20, 20), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
+            # cv2.putText(printx, printy, (20, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
     # 결과 이미지를 윈도우 창에 표시
-    cv2.imshow('Head Pose Estimation', frame)
+    cv2.imshow('Head Pose, Gaze Tracking Estimation', frame)
     # q 눌러서 종료
     if cv2.waitKey(1) & 0xFF == ord('q'):
         break
