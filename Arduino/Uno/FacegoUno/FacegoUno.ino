@@ -35,8 +35,9 @@ void setup() {
 }
  
 void loop() {
- if (Serial.available()){                  
-    char command = Serial.read();          
+ if (Serial.available() > 0){                  
+    char command = Serial.read();
+    // String command = Serial.readString();
     Serial.print("Recived command : ");
     if(command == 'g'){                    
       goForward();

@@ -7,13 +7,9 @@ void setup() {
 }
 
 void loop() {
-  // put your main code here, to run repeatedly:
-  if(Serial.available()){
-    int value = Serial.parseInt();
-    Serial.print("받은값 : ");
-      digitalWrite(LED_BUILTIN, HIGH);
-      delay(10000);
-      digitalWrite(LED_BUILTIN, LOW);
-      delay(1000);
+  if (Serial.available() > 0) { // 시리얼 버퍼에 값이 있는지 확인
+    String value = Serial.readString(); // 시리얼 버퍼에서 값을 읽어옴
+    Serial.print("받은 값: ");
+    Serial.println(value); // 받은 값을 시리얼 모니터에 출력
   }
 }
