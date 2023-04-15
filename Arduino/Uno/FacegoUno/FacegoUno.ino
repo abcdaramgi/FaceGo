@@ -31,13 +31,29 @@ void setup() {
   pinMode(SpeedPin_B, OUTPUT);            // PWM제어핀 출력모드 설정
 
   Serial.begin(9600);
-  Serial.println("Start");
 }
  
 void loop() {
+  String front;
+  String back;
+
  if (Serial.available() > 0){                  
     char command = Serial.read();
-    // String command = Serial.readString();
+    
+    //===============================================================================//
+    //String 문자열 나누기//
+    //===============================================================================//
+    // String command = Serial.readStringUntil('\n');
+    // command.trim(); // 문자열의 앞뒤의 공백 제거
+    // //공백을 기준으로 문자열 분리하기
+    // int spaceIndex = command.indexOf(' '); // 공백의 인덱스 찾기
+    // if (spaceIndex != -1) { // 공백이 존재할 경우
+    //   front = command.substring(0, spaceIndex); // 'hello' 부분 추출
+    //   back = command.substring(spaceIndex + 1); // 'me' 부분 추출
+    // }
+    // Serial.println("받은데이터 : " + command + "앞부분 : " + front + "뒷부분 : " + back);
+    //===============================================================================//
+    
     Serial.print("Recived command : ");
     if(command == 'g'){                    
       goForward();
