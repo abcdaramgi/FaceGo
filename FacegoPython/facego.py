@@ -1,6 +1,8 @@
 import cv2 #영상 처리
 import mediapipe as mp # 머신러닝 프레임워크
 import numpy as np # 다차원 배열 처리
+import dlib
+
 from gaze_tracking import GazeTracking 
 import serial
 import time
@@ -38,6 +40,30 @@ print("변환된 동영상 너비(가로) : {}, 높이(세로) : {}".format(w, h
 if not cap.isOpened():
     print("Could not open webcam")
     exit()
+
+gaze = GazeTracking()
+webcam = cv2.VideoCapture(0)
+
+# predictor 생성
+# predictor = gaze._predictor
+
+# def recalibrate_gaze_tracking():
+#     calibration = gaze.Calibration()
+#     while not calibration.is_complete():
+#         success, frame = webcam.read()
+#         if not success:
+#             continue
+#         gaze.refresh(frame)
+#         left_eye = gaze.pupil_left_coords()
+#         right_eye = gaze.pupil_right_coords()
+#         if left_eye and right_eye:
+#             calibration.evaluate(gaze.eye_left_image, 0)
+#             calibration.evaluate(gaze.eye_right_image, 1)
+#     threshold_left = calibration.threshold(0)
+#     threshold_right = calibration.threshold(1)
+#     return threshold_left, threshold_right
+
+# recalibrate_gaze_tracking()
 
 # 비디오 프레임을 캡처하고 처리하는 루프
 while cap.isOpened():
