@@ -332,6 +332,7 @@ with map_face_mesh.FaceMesh(max_num_faces=1,refine_landmarks=True,min_detection_
             eye_position_left, color = positionEstimator(crop_left)
             utils.colorBackgroundText(frame, f'L: {eye_position_left}', FONTS, 1.0, (40, 320), 2, color[0], color[1], 8, 8)
 
+            #---------------------------------------------------------------------------------------------------------------------문제의 쓰레드 파트---------------------------
             # ThreadPoolExecutor 객체 생성
             executor = ThreadPoolExecutor(max_workers=1)
 
@@ -347,6 +348,7 @@ with map_face_mesh.FaceMesh(max_num_faces=1,refine_landmarks=True,min_detection_
                 utils.colorBackgroundText(frame, f'RE_RS: {result[1]}', FONTS, 1.0, (600, 240), 2, color[0], color[1], 8, 8)
                 utils.colorBackgroundText(frame, f'RE_LS: {result[2]}', FONTS, 1.0, (600, 360), 2, color[0], color[1], 8, 8)
                 utils.colorBackgroundText(frame, f'RE_RS: {result[3]}', FONTS, 1.0, (600, 480), 2, color[0], color[1], 8, 8)
+            #-----------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 
 
