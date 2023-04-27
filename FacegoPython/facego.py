@@ -1,16 +1,22 @@
 import cv2 #영상 처리
+import keyboard as keyboard
 import mediapipe as mp # 머신러닝 프레임워크
 import numpy as np # 다차원 배열 처리
 import dlib
 
 from gaze_tracking import GazeTracking 
-import serial
+# import serial
 import time
 import math
 
+from tkinter import *
+from PIL import ImageTk, Image
 # 시리얼 통신 설정
 # port = "/dev/ttyACM0"  # 아두이노 시리얼 포트에 따라 변경
 # ser = serial.Serial(port, 9600, timeout=1)  # 아두이노와 9600 bps로 시리얼 통신, timeout은 1초로 설정
+
+
+
 
 # GazeTracking 선언
 gaze = GazeTracking()
@@ -28,8 +34,8 @@ h = cap.get(cv2.CAP_PROP_FRAME_HEIGHT)
 print("원본 동영상 너비(가로) : {}, 높이(세로) : {}".format(w, h))
 
 # 동영상 크기 변환
-cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1920) # 가로
-cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 1080) # 세로
+cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1920)  # 가로
+cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 1080)  # 세로
 
 # 변환된 동영상 크기 정보
 w = cap.get(cv2.CAP_PROP_FRAME_WIDTH)
@@ -43,27 +49,6 @@ if not cap.isOpened():
 
 gaze = GazeTracking()
 webcam = cv2.VideoCapture(0)
-
-# predictor 생성
-# predictor = gaze._predictor
-
-# def recalibrate_gaze_tracking():
-#     calibration = gaze.Calibration()
-#     while not calibration.is_complete():
-#         success, frame = webcam.read()
-#         if not success:
-#             continue
-#         gaze.refresh(frame)
-#         left_eye = gaze.pupil_left_coords()
-#         right_eye = gaze.pupil_right_coords()
-#         if left_eye and right_eye:
-#             calibration.evaluate(gaze.eye_left_image, 0)
-#             calibration.evaluate(gaze.eye_right_image, 1)
-#     threshold_left = calibration.threshold(0)
-#     threshold_right = calibration.threshold(1)
-#     return threshold_left, threshold_right
-
-# recalibrate_gaze_tracking()
 
 # 비디오 프레임을 캡처하고 처리하는 루프
 while cap.isOpened():
@@ -109,14 +94,14 @@ while cap.isOpened():
     frame = gaze.annotated_frame() #업데이트된 프레임에 시선 정보 추가하여 보여줌
     text = ""
     text2 = ""
-    
+
     if gaze.is_blinking(): # 눈 깜빡일 때
         text = "Eye Blinking"
     elif gaze.is_right(): # 오른쪽 볼 때
         text = "Eye Right"
-    elif gaze.is_left(): # 왼쪽 볼 때 
+    elif gaze.is_left(): # 왼쪽 볼 때
         text = "Eye left"
-    elif gaze.is_center(): # 정면 볼 때 
+    elif gaze.is_center(): # 정면 볼 때
         text = "Eye center"
     left_pupil = gaze.pupil_left_coords() # 왼쪽 눈동자 좌표 가져오기
     right_pupil = gaze.pupil_right_coords() # 오른쪽 눈동자 좌표 가져오기
@@ -126,21 +111,8 @@ while cap.isOpened():
     cv2.putText(frame, "Right pupil: " + str(right_pupil), (90, 165), cv2.FONT_HERSHEY_DUPLEX, 0.9, (147, 58, 31), 1) # 오른쪽 눈동자 좌표
     cv2.putText(frame, "Horizontal Ratio: " + str(horizontal_ratio), (90, 195), cv2.FONT_HERSHEY_DUPLEX, 0.9, (147, 58, 31), 1) # 시선의 수평 방향 0~1
     cv2.putText(frame, "Vertical Ratio: " + str(vertical_ratio), (90, 225), cv2.FONT_HERSHEY_DUPLEX, 0.9, (147, 58, 31), 1) # 시선의 수직 방향 0~1
-    
-    # #RC카를 제어하는 코드
-    # if horizontal_ratio < 0.5:
-    #     # 좌회전
-    #     ser.write(b'1')
-    # elif horizontal_ratio > 0.7:
-    #     # 우회전
-    #     ser.write(b'2')
-    # else:
-    #     # 직진
-    #     ser.write(b'0')
 
-    # time.sleep(0.1)  # 100ms 대기 후 반복
-
-    # Get the head pose using FaceMesh
+    # Get the head pose using FaceMeshssssssssss
     img_h, img_w, img_c = frame.shape # 이미지 높이, 너비, 채널
     face_3d = [] # 3D 좌표 리스트
     face_2d = [] # 2D 좌표 리스트
@@ -187,7 +159,7 @@ while cap.isOpened():
             # Y축 회전 각도 가져오기
             x = angles[0] * 360
             y = angles[1] * 360
-            
+
             printx = x;
             printy = y;
 
@@ -220,7 +192,8 @@ while cap.isOpened():
     cv2.imshow('Head Pose, Gaze Tracking Estimation', frame)
     # q 눌러서 종료
     if cv2.waitKey(1) & 0xFF == ord('q'):
+        cap.release()
+        cv2.destroyAllWindows()
         break
 
-cap.release()
-cv2.destroyAllWindows()
+
