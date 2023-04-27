@@ -279,7 +279,7 @@ def set_eyetracking(right_e, left_e):
                 break
             cv.destroyAllWindows()
             camera.release()
-        return right_eye_left_standard, right_eye_right_standard, left_eye_left_standard, left_eye_right_standard
+        return left_eye_left_standard, right_eye_left_standard, left_eye_right_standard, right_eye_right_standard
 
         # while True:
             
@@ -331,23 +331,29 @@ with map_face_mesh.FaceMesh(max_num_faces=1,refine_landmarks=True,min_detection_
             # 프레임에 눈의 위치와 색상을 나타내는 텍스트 추가
             eye_position_left, color = positionEstimator(crop_left)
             utils.colorBackgroundText(frame, f'L: {eye_position_left}', FONTS, 1.0, (40, 320), 2, color[0], color[1], 8, 8)
+            
+            current_r_pixel = recalibrate(crop_left)
+            current_l_pixel = recalibrate(crop_right)
+            
+            utils.colorBackgroundText(frame, f'crr_L: {current_l_pixel}', FONTS, 1.0, (600, 480), 2, color[0], color[1], 8, 8)
+            utils.colorBackgroundText(frame, f'crr_R: {current_r_pixel}', FONTS, 1.0, (600, 360), 2, color[0], color[1], 8, 8)
 
             #---------------------------------------------------------------------------------------------------------------------문제의 쓰레드 파트---------------------------
-            # ThreadPoolExecutor 객체 생성
-            executor = ThreadPoolExecutor(max_workers=1)
+            # # ThreadPoolExecutor 객체 생성
+            # executor = ThreadPoolExecutor(max_workers=1)
 
-            # set_complete가 FALSE이면, 아이트래킹 설정을 안했다면
-            if set_complete==False:
-                # submit() 메서드로 Future 객체를 반환받음
-                # future = executor.submit(set_eyetracking, crop_left, crop_right)
-                result = set_eyetracking()
-                # Future 객체의 결과값(result)를 반환받을 수 있음
-            # if set_complete:
-                # result = future.result()
-                utils.colorBackgroundText(frame, f'RE_LS: {result[0]}', FONTS, 1.0, (600, 120), 2, color[0], color[1], 8, 8)
-                utils.colorBackgroundText(frame, f'RE_RS: {result[1]}', FONTS, 1.0, (600, 240), 2, color[0], color[1], 8, 8)
-                utils.colorBackgroundText(frame, f'RE_LS: {result[2]}', FONTS, 1.0, (600, 360), 2, color[0], color[1], 8, 8)
-                utils.colorBackgroundText(frame, f'RE_RS: {result[3]}', FONTS, 1.0, (600, 480), 2, color[0], color[1], 8, 8)
+            # # set_complete가 FALSE이면, 아이트래킹 설정을 안했다면
+            # if set_complete==False:
+            #     # submit() 메서드로 Future 객체를 반환받음
+            #     # future = executor.submit(set_eyetracking, crop_left, crop_right)
+            #     result = set_eyetracking()
+            #     # Future 객체의 결과값(result)를 반환받을 수 있음
+            # # if set_complete:
+            #     # result = future.result()
+            #     utils.colorBackgroundText(frame, f'RE_LS: {result[0]}', FONTS, 1.0, (600, 120), 2, color[0], color[1], 8, 8)
+            #     utils.colorBackgroundText(frame, f'RE_RS: {result[1]}', FONTS, 1.0, (600, 240), 2, color[0], color[1], 8, 8)
+            #     utils.colorBackgroundText(frame, f'RE_LS: {result[2]}', FONTS, 1.0, (600, 360), 2, color[0], color[1], 8, 8)
+            #     utils.colorBackgroundText(frame, f'RE_RS: {result[3]}', FONTS, 1.0, (600, 480), 2, color[0], color[1], 8, 8)
             #-----------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 
