@@ -113,6 +113,12 @@ import cv2
 from PIL import Image, ImageTk
 import tkinter as tk
 import numpy as np
+import facego
+import threading
+from Arduino.socket.client import test2
+
+
+
 class App:
     def __init__(self, window, window_title):
         self.window = window
@@ -134,6 +140,9 @@ class App:
         self.delay = 15
         self.update()
 
+        label = tk.Label(window, text=facego.text2)
+        label.place(x=0, y=0)
+
         self.window.mainloop()
 
     def update(self):
@@ -152,4 +161,11 @@ class App:
 
         self.window.after(self.delay, self.update)
 
-App(tk.Tk(), "Tkinter and OpenCV")
+
+
+if __name__ == '__main__':
+    App(tk.Tk(), "Tkinter and OpenCV")
+    t1 = threading.Thread(target=facego.test)
+    t1.start()
+    t2 = threading.Thread(target=test2())
+    t2.start()

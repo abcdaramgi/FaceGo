@@ -1,7 +1,7 @@
 import socket
-import serial
+# import serial
 #시리얼 통신
-ser = serial.Serial("COM5", 9600)
+# ser = serial.Serial("COM5", 9600)
 
 HOST = '127.0.0.1'
 
@@ -35,7 +35,7 @@ while True:
     client_socket.sendall(data)
 
     #아두이노로 전송
-    ser.write(data)
+    # ser.write(data)
 
 client_socket.close()
 server_socket.close()
