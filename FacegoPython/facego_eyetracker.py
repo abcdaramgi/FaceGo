@@ -6,6 +6,8 @@ import numpy as np
 import threading
 from concurrent.futures import ThreadPoolExecutor
 
+eye_set_complete = False
+
 FONTS = cv.FONT_HERSHEY_COMPLEX
 
 FACE_OVAL = [10, 338, 297, 332, 284, 251, 389, 356, 454, 323, 361, 288, 397, 365, 379, 378, 400, 377, 152, 148, 176,
@@ -28,6 +30,7 @@ RIGHT_IRIS = [469, 470, 471, 472]
 
 map_face_mesh = mp.solutions.face_mesh
 camera = cv.VideoCapture(0)
+
 
 
 def landmarksDetection(img, results, draw=False):
@@ -197,96 +200,119 @@ def recalibrate(cropped_eye):
 
     return right_part, center_part, left_part
 
-def set_eyetracking(right_e, left_e):
+
+
+class Countdown(threading.Thread):
+    def __init__(self):
+        super().__init__()
+        self.is_running = True
+        self.is_countdown_finished = False
+        self.countdown = 5
+        
+    def run(self):
+        while self.countdown > 0 and self.is_running:
+            # 카운트다운 텍스트 생성
+            text = f'{self.countdown}'
+            (text_width, text_height), _ = cv.getTextSize(text, cv.FONT_HERSHEY_SIMPLEX, 2, 2)
+            x = int((640 - text_width) / 2)
+            y = int((480 - text_height) / 2)
+            cv.putText(frame, text, (x, y), cv.FONT_HERSHEY_SIMPLEX, 2, (0, 0, 255), 2, cv.LINE_AA)
+            
+            # 1초 대기
+            time.sleep(1)  
+            self.countdown -= 1
+        
+        # 카운트다운 종료
+        self.is_countdown_finished = True
+    
+    def stop(self):
+        self.is_running = False
+
+
+def set_eyetracking():
         start_time = time.monotonic()
+        current_time = time.monotonic()
+
+        countdown_thread = Countdown()
+        countdown_thread.start()
         
         while True:
-            ret, frame = camera.read()
-            if not ret:
+            # 동그라미 그리기
+            cv.circle(frame, (240, 350), 30, (0, 0, 255), 2)
+            
+            if countdown_thread.is_countdown_finished:
+                # 카운트다운이 끝난 경우
+                cv.circle(frame, (240, 350), 30, (0, 255, 0), -1)
                 break
-
-            # 좌우 반전
-            frame = cv.flip(frame, 1)
-
-            #이미지 크기 조정
-            frame = cv.resize(frame, None, fx=1.5, fy=1.5, interpolation=cv.INTER_CUBIC)
-
-            #프레임 높이, 너비 추출
-            frame_height, frame_width = frame.shape[:2]
-
-            #RGB 프레임으로 변환
-            rgb_frame = cv.cvtColor(frame, cv.COLOR_RGB2BGR)
-
-            # FaceMesh 모듈의 process() 함수를 사용하여 얼굴 랜드마크 추출
-            results = face_mesh.process(rgb_frame)
-
-            if results.multi_face_landmarks:
-                # 얼굴 랜드마크 좌표를 landmarksDetection() 함수를 사용하여 추출
-                mesh_coords = landmarksDetection(frame, results, False)
-                
-                # 왼쪽 눈, 오른쪽 눈의 좌표를 사용하여 눈 주변의 다각형을 그리기
-                cv.polylines(frame, [np.array([mesh_coords[p] for p in LEFT_EYE], dtype=np.int32)], True, utils.GREEN, 1, cv.LINE_AA)
-                cv.polylines(frame, [np.array([mesh_coords[p] for p in RIGHT_EYE], dtype=np.int32)], True, utils.GREEN, 1, cv.LINE_AA)
-                cv.polylines(frame, [np.array([mesh_coords[p] for p in LEFT_EYE], dtype=np.int32)], True, utils.GREEN, 1, cv.LINE_AA)
-                cv.polylines(frame, [np.array([mesh_coords[p] for p in RIGHT_EYE], dtype=np.int32)], True, utils.GREEN, 1, cv.LINE_AA)
-                
-                # 오른쪽 눈, 왼쪽 눈 이미지를 추출하여 eye_position, Estimator() 함수를 사용하여 눈의 위치 추정
-                right_coords = [mesh_coords[p] for p in RIGHT_EYE]
-                left_coords = [mesh_coords[p] for p in LEFT_EYE]
-                right_iris_coords = [mesh_coords[p] for p in RIGHT_IRIS]
-                left_iris_coords = [mesh_coords[p] for p in LEFT_IRIS]
-                crop_right, crop_left = eyesExtractor(frame, right_coords, left_coords,right_iris_coords,left_iris_coords)
-                cv.imshow('frame', frame)  
-                current_time = time.monotonic()
-                if (current_time-start_time)<6:
-                    # 왼쪽 동그라미
-                    cv.circle(frame, (240, 350), 30, (0, 0, 255), 2)
-                if current_time-start_time == 1:
-                    target=utils.colorBackgroundText, frame, f'Look Left Circle', FONTS, 1.0, (40, 220), 2, color[0], color[1], 8, 8
-
-                elif current_time-start_time == 2:
-                    target=utils.colorBackgroundText, frame, f'3', FONTS, 1.0, (40, 220), 2, color[0], color[1], 8, 8
-                elif current_time-start_time == 3:
-                    target=utils.colorBackgroundText, frame, f'2', FONTS, 1.0, (40, 220), 2, color[0], color[1], 8, 8
-                elif current_time-start_time == 4:
-                    target=utils.colorBackgroundText, frame, f'1', FONTS, 1.0, (40, 220), 2, color[0], color[1], 8, 8
-                elif current_time-start_time == 5:
-                        right_eye_left_standard = recalibrate(crop_right) # 오른쪽 눈 왼쪽 동그라이 볼 때의 기준 값
-                        left_eye_left_standard = recalibrate(crop_left) # 왼쪽 눈 왼쪽 동그라미 볼 때의 기준 값
-
-                if (current_time-start_time)<6:
-                    # 오른쪽 동그라미
-                    cv.circle(frame, (680, 350), 30, (0, 0, 255), 2)
-                elif current_time-start_time == 6:
-                    target=utils.colorBackgroundText, frame, f'Look Left Circle', FONTS, 1.0, (40, 220), 2, color[0], color[1], 8, 8
-                elif current_time-start_time == 7:
-                    target=utils.colorBackgroundText, frame, f'3', FONTS, 1.0, (40, 220), 2, color[0], color[1], 8, 8
-                elif current_time-start_time == 8:
-                    target=utils.colorBackgroundText, frame, f'2', FONTS, 1.0, (40, 220), 2, color[0], color[1], 8, 8    
-                elif current_time-start_time == 9:
-                    target=utils.colorBackgroundText, frame, f'1', FONTS, 1.0, (40, 220), 2, color[0], color[1], 8, 8
-                elif current_time-start_time == 10:
-                    right_eye_right_standard = recalibrate(crop_right)
-                    left_eye_right_standard = recalibrate(crop_left)
-
-                elif current_time-start_time == 11:
-                    target=utils.colorBackgroundText, frame, f'Set Complete!!', FONTS, 1.0, (40, 220), 2, color[0], color[1], 8, 8
-                    set_complete=True
-                
-            cv.imshow('frame', frame)  
-            key = cv.waitKey(2)
+                    # 화면에 보여주기
+            cv.imshow('frame', frame)
+            key = cv.waitKey(1)
             if key == ord('q') or key == ord('Q'):
                 break
-            cv.destroyAllWindows()
-            camera.release()
-        return left_eye_left_standard, right_eye_left_standard, left_eye_right_standard, right_eye_right_standard
 
-        # while True:
+        countdown_thread.stop()
+        countdown_thread.join()
+        cv.destroyAllWindows()
+
+        # if count == 1:
+        #     cv.circle(frame, (240, 350), 30, (0, 0, 255), 2)
+        #     utils.colorBackgroundText, frame, f'Look Left Circle', FONTS, 1.0, (40, 220), 2, color[0], color[1], 8, 8
+        #     count += 1
+
+        # elif count == 2:
+        #     utils.colorBackgroundText, frame, f'3', FONTS, 1.0, (40, 220), 2, color[0], color[1], 8, 8
+        #     count += 1
+
+        # elif count == 3:
+        #     utils.colorBackgroundText, frame, f'2', FONTS, 1.0, (40, 220), 2, color[0], color[1], 8, 8
+        #     count += 1
+
+        # elif count == 4:
+        #     utils.colorBackgroundText, frame, f'1', FONTS, 1.0, (40, 220), 2, color[0], color[1], 8, 8
+        #     count += 1
+
+        # elif count == 5:
+        #     right_eye_left_standard = recalibrate(crop_right) # 오른쪽 눈 왼쪽 동그라이 볼 때의 기준 값
+        #     left_eye_left_standard = recalibrate(crop_left) # 왼쪽 눈 왼쪽 동그라미 볼 때의 기준 값
+        #     cv.circle(frame, (240, 350), 30, (0, 0, 255), -1)
+        #     cv.circle(frame, (680, 350), 30, (0, 0, 255), 2)
+
+        #     count += 1
+
+        # elif count == 6:
+        #     utils.colorBackgroundText, frame, f'Look Left Circle', FONTS, 1.0, (40, 220), 2, color[0], color[1], 8, 8
+        #     count += 1
+
+        # elif count == 7:
+        #     utils.colorBackgroundText, frame, f'3', FONTS, 1.0, (40, 220), 2, color[0], color[1], 8, 8
+        #     count += 1
+
+        # elif count == 8:
+        #     utils.colorBackgroundText, frame, f'2', FONTS, 1.0, (40, 220), 2, color[0], color[1], 8, 8
+        #     count += 1
+
+        # elif count == 9:
+        #     utils.colorBackgroundText, frame, f'1', FONTS, 1.0, (40, 220), 2, color[0], color[1], 8, 8
+        #     count += 1
+
+        # elif count == 10:
+        #     right_eye_right_standard = recalibrate(crop_right)
+        #     left_eye_right_standard = recalibrate(crop_left)
+        #     count += 1
+
+        # elif count == 11:
+        #     eye_set_complete = True
+        #     utils.colorBackgroundText, frame, f'Set Complete!!', FONTS, 1.0, (40, 220), 2, color[0], color[1], 8, 8
+        #     cv.circle(frame, (680, 350), 30, (0, 0, 255), -1)
+        #     count += 1
+
+        # elif count == 12:
+        #     return left_eye_left_standard, right_eye_left_standard, left_eye_right_standard, right_eye_right_standard
+                
             
 # 프로그램 시작
 with map_face_mesh.FaceMesh(max_num_faces=1,refine_landmarks=True,min_detection_confidence=0.5, min_tracking_confidence=0.5) as face_mesh:
     start_trigger = False
-    set_complete = False
 
     while True:
         ret, frame = camera.read()
@@ -298,10 +324,13 @@ with map_face_mesh.FaceMesh(max_num_faces=1,refine_landmarks=True,min_detection_
 
         #이미지 크기 조정
         frame = cv.resize(frame, None, fx=1.5, fy=1.5, interpolation=cv.INTER_CUBIC)
+
         #프레임 높이, 너비 추출
         frame_height, frame_width = frame.shape[:2]
+
         #RGB 프레임으로 변환
         rgb_frame = cv.cvtColor(frame, cv.COLOR_RGB2BGR)
+
         # FaceMesh 모듈의 process() 함수를 사용하여 얼굴 랜드마크 추출
         results = face_mesh.process(rgb_frame)
 
@@ -334,29 +363,26 @@ with map_face_mesh.FaceMesh(max_num_faces=1,refine_landmarks=True,min_detection_
             
             current_r_pixel = recalibrate(crop_left)
             current_l_pixel = recalibrate(crop_right)
-            
-            utils.colorBackgroundText(frame, f'crr_L: {current_l_pixel}', FONTS, 1.0, (600, 480), 2, color[0], color[1], 8, 8)
-            utils.colorBackgroundText(frame, f'crr_R: {current_r_pixel}', FONTS, 1.0, (600, 360), 2, color[0], color[1], 8, 8)
+            utils.colorBackgroundText(frame, f'crr_L: {current_l_pixel}', FONTS, 1.0, (600, 100), 2, color[0], color[1], 8, 8)
+            utils.colorBackgroundText(frame, f'crr_R: {current_r_pixel}', FONTS, 1.0, (600, 50), 2, color[0], color[1], 8, 8)
 
-            #---------------------------------------------------------------------------------------------------------------------문제의 쓰레드 파트---------------------------
-            # # ThreadPoolExecutor 객체 생성
-            # executor = ThreadPoolExecutor(max_workers=1)
+            # ---------------------------------------------------------------------------------------------------------------------문제의 쓰레드 파트---------------------------
+            # ThreadPoolExecutor 객체 생성
+            executor = ThreadPoolExecutor(max_workers=1)
 
-            # # set_complete가 FALSE이면, 아이트래킹 설정을 안했다면
-            # if set_complete==False:
-            #     # submit() 메서드로 Future 객체를 반환받음
-            #     # future = executor.submit(set_eyetracking, crop_left, crop_right)
-            #     result = set_eyetracking()
-            #     # Future 객체의 결과값(result)를 반환받을 수 있음
-            # # if set_complete:
-            #     # result = future.result()
-            #     utils.colorBackgroundText(frame, f'RE_LS: {result[0]}', FONTS, 1.0, (600, 120), 2, color[0], color[1], 8, 8)
-            #     utils.colorBackgroundText(frame, f'RE_RS: {result[1]}', FONTS, 1.0, (600, 240), 2, color[0], color[1], 8, 8)
-            #     utils.colorBackgroundText(frame, f'RE_LS: {result[2]}', FONTS, 1.0, (600, 360), 2, color[0], color[1], 8, 8)
-            #     utils.colorBackgroundText(frame, f'RE_RS: {result[3]}', FONTS, 1.0, (600, 480), 2, color[0], color[1], 8, 8)
-            #-----------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-
+            # set_complete가 FALSE이면, 아이트래킹 설정을 안했다면
+            if eye_set_complete == False:
+                # submit() 메서드로 Future 객체를 반환받음
+                future = executor.submit(set_eyetracking, crop_left, crop_right)
+                result = set_eyetracking()
+                # Future 객체의 결과값(result)를 반환받을 수 있음
+            if eye_set_complete:
+                result = future.result()
+                utils.colorBackgroundText(frame, f'RE_LS: {result[0]}', FONTS, 1.0, (600, 120), 2, color[0], color[1], 8, 8)
+                utils.colorBackgroundText(frame, f'RE_RS: {result[1]}', FONTS, 1.0, (600, 240), 2, color[0], color[1], 8, 8)
+                utils.colorBackgroundText(frame, f'RE_LS: {result[2]}', FONTS, 1.0, (600, 360), 2, color[0], color[1], 8, 8)
+                utils.colorBackgroundText(frame, f'RE_RS: {result[3]}', FONTS, 1.0, (600, 480), 2, color[0], color[1], 8, 8)
+            # -----------------------------------------------------------------------------------------------------------------------------------------------------------------
 
         cv.imshow('frame', frame)
         key = cv.waitKey(2)
