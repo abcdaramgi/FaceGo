@@ -107,7 +107,7 @@ def positionEstimator(cropped_eye):
     # cv.THRESH_OTSU는 임계값을 자동으로 결정
 
 
-    print("best threshold",_t)
+    # print("best threshold",_t)
     #kernel2 = cv.getStructuringElement(cv.MORPH_ELLIPSE, (3, 3))
     #eye_erode_bin = cv.erode(threshed_eye, kernel2, iterations=2)
     kernel = cv.getStructuringElement(cv.MORPH_ELLIPSE, (3, 3))
@@ -129,16 +129,17 @@ def positionEstimator(cropped_eye):
     left_piece = eye_bin[0:h, not_center_piece+piece+piece:w]
 
     # 각 영역의 픽셀값 수 계산
-    eye_position, color = pixelCounter(right_piece, center_piece, left_piece)
+    eye_position, color = pixelCounter(left_piece, center_piece, right_piece)
 
     return eye_position, color
 
 # 각 영역별로 픽셀 값을 계산하여 눈동자 위치를 반환하는 함수
 def pixelCounter(first_piece, second_piece, third_piece):
-    right_part = np.sum(first_piece == 0)
+    left_part = np.sum(first_piece == 0)
     center_part = np.sum(second_piece == 0)
-    left_part = np.sum(third_piece == 0)
-    eye_parts = [right_part, center_part, left_part]
+    right_part = np.sum(third_piece == 0)
+
+    eye_parts = [left_part, center_part, right_part]
     
     # 픽셀 값이 가장 많은 영역의 인덱스를 구함
     max_index = eye_parts.index(max(eye_parts))
@@ -177,7 +178,7 @@ def recalibrate(cropped_eye):
     # 70을 기준으로 이진화 된 이미지를 반환
     # cv.THRESH_BINARY는 이진화 임계값보다 큰 값은 모두 255로(흰색), 작은 값은 모두 0으로(검정색) 바꿈
     # cv.THRESH_OTSU는 임계값을 자동으로 결정
-    print("best threshold",_t)
+    # print("best threshold",_t)
 
     kernel = cv.getStructuringElement(cv.MORPH_ELLIPSE, (3, 3))
     eye_bin = cv.dilate(threshed_eye, kernel, iterations=1)
@@ -203,19 +204,22 @@ def recalibrate(cropped_eye):
 
 
 class Countdown(threading.Thread):
-    def __init__(self):
+    def __init__(self, event, set_frame_callback):
         super().__init__()
-        self.is_running = True
+        self.event = event
         self.is_countdown_finished = False
         self.countdown = 5
+        self.set_frame_callback = set_frame_callback
         
     def run(self):
-        while self.countdown > 0 and self.is_running:
+        while self.countdown > 0 and not self.event.is_set():
+            print("CountDown run!")
             # 카운트다운 텍스트 생성
             text = f'{self.countdown}'
             (text_width, text_height), _ = cv.getTextSize(text, cv.FONT_HERSHEY_SIMPLEX, 2, 2)
             x = int((640 - text_width) / 2)
             y = int((480 - text_height) / 2)
+            frame = self.set_frame_callback()
             cv.putText(frame, text, (x, y), cv.FONT_HERSHEY_SIMPLEX, 2, (0, 0, 255), 2, cv.LINE_AA)
             
             # 1초 대기
@@ -224,92 +228,38 @@ class Countdown(threading.Thread):
         
         # 카운트다운 종료
         self.is_countdown_finished = True
-    
-    def stop(self):
-        self.is_running = False
-
-
-def set_eyetracking():
-        start_time = time.monotonic()
-        current_time = time.monotonic()
-
-        countdown_thread = Countdown()
-        countdown_thread.start()
+        self.event.set()
         
-        while True:
-            # 동그라미 그리기
-            cv.circle(frame, (240, 350), 30, (0, 0, 255), 2)
-            
-            if countdown_thread.is_countdown_finished:
-                # 카운트다운이 끝난 경우
-                cv.circle(frame, (240, 350), 30, (0, 255, 0), -1)
-                break
-                    # 화면에 보여주기
-            cv.imshow('frame', frame)
-            key = cv.waitKey(1)
-            if key == ord('q') or key == ord('Q'):
-                break
+def set_eyetracking(frame):
+    count = 0
+    event = threading.Event()
+    countdown_thread = Countdown(event, lambda: frame)
+    
+    while not event.is_set():
+        print("set_Eyetracking run~")
+        # 좌측 동그라미 그리기
+        cv.circle(frame, (240, 350), 30, (0, 0, 255), 2)
 
-        countdown_thread.stop()
-        countdown_thread.join()
-        cv.destroyAllWindows()
+        event.wait()  # event가 set() 될 때까지 대기
+        
+        if countdown_thread.is_countdown_finished:
+            # 카운트다운이 끝난 경우
+            count += 1
 
-        # if count == 1:
-        #     cv.circle(frame, (240, 350), 30, (0, 0, 255), 2)
-        #     utils.colorBackgroundText, frame, f'Look Left Circle', FONTS, 1.0, (40, 220), 2, color[0], color[1], 8, 8
-        #     count += 1
+        if count == 1:
+            cv.circle(frame, (240, 350), 30, (0, 0, 255), -1) # 좌측 지우고
+            cv.circle(frame, (680, 350), 30, (0, 0, 255), 2) # 우측 동그랑미 그리기
+            countdown_thread.start()
 
-        # elif count == 2:
-        #     utils.colorBackgroundText, frame, f'3', FONTS, 1.0, (40, 220), 2, color[0], color[1], 8, 8
-        #     count += 1
+        elif count == 2:
+            utils.colorBackgroundText(frame, f'EyeTracking Setting Finish!', FONTS, 1.0, (600, 120), 2, color[0], color[1], 8, 8)
+            break
+        
+       
+    countdown_thread.join()
+    cv.destroyAllWindows()
 
-        # elif count == 3:
-        #     utils.colorBackgroundText, frame, f'2', FONTS, 1.0, (40, 220), 2, color[0], color[1], 8, 8
-        #     count += 1
 
-        # elif count == 4:
-        #     utils.colorBackgroundText, frame, f'1', FONTS, 1.0, (40, 220), 2, color[0], color[1], 8, 8
-        #     count += 1
-
-        # elif count == 5:
-        #     right_eye_left_standard = recalibrate(crop_right) # 오른쪽 눈 왼쪽 동그라이 볼 때의 기준 값
-        #     left_eye_left_standard = recalibrate(crop_left) # 왼쪽 눈 왼쪽 동그라미 볼 때의 기준 값
-        #     cv.circle(frame, (240, 350), 30, (0, 0, 255), -1)
-        #     cv.circle(frame, (680, 350), 30, (0, 0, 255), 2)
-
-        #     count += 1
-
-        # elif count == 6:
-        #     utils.colorBackgroundText, frame, f'Look Left Circle', FONTS, 1.0, (40, 220), 2, color[0], color[1], 8, 8
-        #     count += 1
-
-        # elif count == 7:
-        #     utils.colorBackgroundText, frame, f'3', FONTS, 1.0, (40, 220), 2, color[0], color[1], 8, 8
-        #     count += 1
-
-        # elif count == 8:
-        #     utils.colorBackgroundText, frame, f'2', FONTS, 1.0, (40, 220), 2, color[0], color[1], 8, 8
-        #     count += 1
-
-        # elif count == 9:
-        #     utils.colorBackgroundText, frame, f'1', FONTS, 1.0, (40, 220), 2, color[0], color[1], 8, 8
-        #     count += 1
-
-        # elif count == 10:
-        #     right_eye_right_standard = recalibrate(crop_right)
-        #     left_eye_right_standard = recalibrate(crop_left)
-        #     count += 1
-
-        # elif count == 11:
-        #     eye_set_complete = True
-        #     utils.colorBackgroundText, frame, f'Set Complete!!', FONTS, 1.0, (40, 220), 2, color[0], color[1], 8, 8
-        #     cv.circle(frame, (680, 350), 30, (0, 0, 255), -1)
-        #     count += 1
-
-        # elif count == 12:
-        #     return left_eye_left_standard, right_eye_left_standard, left_eye_right_standard, right_eye_right_standard
-                
-            
 # 프로그램 시작
 with map_face_mesh.FaceMesh(max_num_faces=1,refine_landmarks=True,min_detection_confidence=0.5, min_tracking_confidence=0.5) as face_mesh:
     start_trigger = False
@@ -363,20 +313,21 @@ with map_face_mesh.FaceMesh(max_num_faces=1,refine_landmarks=True,min_detection_
             
             current_r_pixel = recalibrate(crop_left)
             current_l_pixel = recalibrate(crop_right)
-            utils.colorBackgroundText(frame, f'crr_L: {current_l_pixel}', FONTS, 1.0, (600, 100), 2, color[0], color[1], 8, 8)
-            utils.colorBackgroundText(frame, f'crr_R: {current_r_pixel}', FONTS, 1.0, (600, 50), 2, color[0], color[1], 8, 8)
+            utils.colorBackgroundText(frame, f'L: {current_l_pixel}', FONTS, 1.0, (350, 50), 2, color[0], color[1], 8, 8)
+            utils.colorBackgroundText(frame, f'R: {current_r_pixel}', FONTS, 1.0, (600, 50), 2, color[0], color[1], 8, 8)
 
             # ---------------------------------------------------------------------------------------------------------------------문제의 쓰레드 파트---------------------------
             # ThreadPoolExecutor 객체 생성
-            executor = ThreadPoolExecutor(max_workers=1)
+            executor = ThreadPoolExecutor(max_workers=2)
 
             # set_complete가 FALSE이면, 아이트래킹 설정을 안했다면
             if eye_set_complete == False:
+
+                # threading.Thread(target=set_eyetracking()) 
                 # submit() 메서드로 Future 객체를 반환받음
-                future = executor.submit(set_eyetracking, crop_left, crop_right)
-                result = set_eyetracking()
+                future = executor.submit(set_eyetracking, frame)
                 # Future 객체의 결과값(result)를 반환받을 수 있음
-            if eye_set_complete:
+            if eye_set_complete and future.done():
                 result = future.result()
                 utils.colorBackgroundText(frame, f'RE_LS: {result[0]}', FONTS, 1.0, (600, 120), 2, color[0], color[1], 8, 8)
                 utils.colorBackgroundText(frame, f'RE_RS: {result[1]}', FONTS, 1.0, (600, 240), 2, color[0], color[1], 8, 8)
