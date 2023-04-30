@@ -26,13 +26,13 @@ print('Connected by', addr)
 while True:
     data = client_socket.recv(1024)
 
-    if not data:
-        break
+    if data:
+        # 수신받은 데이터 출력
+        print('받은 데이터 : ', data.decode())
 
-    #수신받은 데이터 출력
-    print('받은 데이터 : ', data.decode())
+        client_socket.sendall(data)
 
-    client_socket.sendall(data)
+
 
     #아두이노로 전송
     # ser.write(data)
