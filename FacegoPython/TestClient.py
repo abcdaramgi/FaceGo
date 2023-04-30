@@ -37,23 +37,16 @@ def say_hello():
     return "hello"
 
 def test():
+    global text
+    global text2
     print("시작해요~")
     print("클라클라클라라")
 
-
-
-
     # print("g(직진),r(우회전)은 red b,l은 green 중 입력 (정지하려면 's'입력)")
     # 0.1초마다 뭐 보내기
-    message = say_hello()  # 함수 호출하여 결과를 변수에 저장
-    print(message)  # 결과 출력(확인용)
-    time.sleep(interval)  # 일정 시간 동안 대기
-
-
-
-
-
-
+    # message = say_hello()  # 함수 호출하여 결과를 변수에 저장
+    # print(message)  # 결과 출력(확인용)
+    # time.sleep(interval)  # 일정 시간 동안 대기
 
     # GazeTracking 선언
     gaze = GazeTracking()
@@ -89,28 +82,6 @@ def test():
 
     # 비디오 프레임을 캡처하고 처리하는 루프
     while cap.isOpened():
-
-        message = say_hello() # 함수 호출하여 결과를 변수에 저장
-        print(message) # 결과 출력(확인용)
-        time.sleep(interval) # 일정 시간 동안 대기
-
-        # q 입력 시 종료
-        if message == 'q':
-            break
-        if message != None:
-            # 입력한 message 전송
-            client_socket.sendall(message.encode())
-
-            # 메시지 수신
-            data = client_socket.recv(1024)
-            print('Received', repr(data.decode()))
-            message = None
-
-        client_socket.close()
-
-
-
-
         # 비디오에서 한 프레임을 캡처
         status, frame = cap.read()
 
@@ -165,11 +136,11 @@ def test():
         left_pupil = gaze.pupil_left_coords() # 왼쪽 눈동자 좌표 가져오기
         right_pupil = gaze.pupil_right_coords() # 오른쪽 눈동자 좌표 가져오기
 
-        cv2.putText(frame, text, (90, 60), cv2.FONT_HERSHEY_DUPLEX, 1.6, (147, 58, 31), 2) # 프레임에 시선 정보 텍스트 추가
-        cv2.putText(frame, "Left pupil:  " + str(left_pupil), (90, 130), cv2.FONT_HERSHEY_DUPLEX, 0.9, (147, 58, 31), 1) # 왼쪽 눈동자 좌표
-        cv2.putText(frame, "Right pupil: " + str(right_pupil), (90, 165), cv2.FONT_HERSHEY_DUPLEX, 0.9, (147, 58, 31), 1) # 오른쪽 눈동자 좌표
-        cv2.putText(frame, "Horizontal Ratio: " + str(horizontal_ratio), (90, 195), cv2.FONT_HERSHEY_DUPLEX, 0.9, (147, 58, 31), 1) # 시선의 수평 방향 0~1
-        cv2.putText(frame, "Vertical Ratio: " + str(vertical_ratio), (90, 225), cv2.FONT_HERSHEY_DUPLEX, 0.9, (147, 58, 31), 1) # 시선의 수직 방향 0~1
+        # cv2.putText(frame, text, (90, 60), cv2.FONT_HERSHEY_DUPLEX, 1.6, (147, 58, 31), 2) # 프레임에 시선 정보 텍스트 추가
+        # cv2.putText(frame, "Left pupil:  " + str(left_pupil), (90, 130), cv2.FONT_HERSHEY_DUPLEX, 0.9, (147, 58, 31), 1) # 왼쪽 눈동자 좌표
+        # cv2.putText(frame, "Right pupil: " + str(right_pupil), (90, 165), cv2.FONT_HERSHEY_DUPLEX, 0.9, (147, 58, 31), 1) # 오른쪽 눈동자 좌표
+        # cv2.putText(frame, "Horizontal Ratio: " + str(horizontal_ratio), (90, 195), cv2.FONT_HERSHEY_DUPLEX, 0.9, (147, 58, 31), 1) # 시선의 수평 방향 0~1
+        # cv2.putText(frame, "Vertical Ratio: " + str(vertical_ratio), (90, 225), cv2.FONT_HERSHEY_DUPLEX, 0.9, (147, 58, 31), 1) # 시선의 수직 방향 0~1
 
         # Get the head pose using FaceMeshssssssssss
         img_h, img_w, img_c = frame.shape # 이미지 높이, 너비, 채널
@@ -227,12 +198,20 @@ def test():
                 # 머리 기울기 확인
                 if y < -5:
                     text2 = "Head Left"
+                    print(text2)
+                    message = text2
                 elif y > 5:
                     text2 = "Head Right"
+                    print(text2)
+                    message = text2
                 elif x < -2:
                     text2 = "Head Down"
+                    print(text2)
+                    message = text2
                 else:
                     text2 = "Head Forward"
+                    print(text2)
+                    message = 'g'
 
                 # 코 방향 표시
                 nose_3d_projection, jacobian = cv2.projectPoints(nose_3d, rot_vec, trans_vec, cam_matrix, dist_matrix)
@@ -247,8 +226,24 @@ def test():
                 # 이미지 위에 텍스트 추가
                 cv2.putText(frame, text2, (20, 20), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
                 # cv2.putText(printx, printy, (20, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
+
+                # message = say_hello() # 함수 호출하여 결과를 변수에 저장
+                print(message) # 결과 출력(확인용)
+                time.sleep(interval) # 일정 시간 동안 대기
+                # q 입력 시 종료
+                if message == 'q':
+                    client_socket.close()
+                if message != None:
+                    # 입력한 message 전송
+                    client_socket.sendall(message.encode())
+
+                    # 메시지 수신
+                    data = client_socket.recv(1024)
+                    print('Received', repr(data.decode()))
+                    message = None
+
         # 결과 이미지를 윈도우 창에 표시
-        cv2.imshow('Head Pose, Gaze Tracking Estimation', frame)
+        # cv2.imshow('Head Pose, Gaze Tracking Estimation', frame)
         # q 눌러서 종료
         if cv2.waitKey(1) & 0xFF == ord('q'):
             cap.release()

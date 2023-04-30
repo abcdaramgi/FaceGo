@@ -4,8 +4,9 @@ import tkinter as tk
 import numpy as np
 import facego
 import threading
-from Arduino.socket import client
+# from Arduino.socket import client
 import TestClient
+import client
 
 class App:
     def __init__(self, window, window_title):
@@ -21,7 +22,7 @@ class App:
         self.canvas.pack()
 
         # PIL 이미지 초기화
-        self.image = Image.open("face.png")
+        self.image = Image.open("FacegoPython/face.png")
         self.image = self.image.resize((int(self.video_stream.get(cv2.CAP_PROP_FRAME_WIDTH)),
                                          int(self.video_stream.get(cv2.CAP_PROP_FRAME_HEIGHT))))
 

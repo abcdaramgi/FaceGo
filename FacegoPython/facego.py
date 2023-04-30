@@ -19,6 +19,8 @@ text = ""
 text2 = ""
 
 def test():
+    global text
+    global text2
     print("시작해요~")
     # GazeTracking 선언
     gaze = GazeTracking()
@@ -170,12 +172,16 @@ def test():
                 # 머리 기울기 확인
                 if y < -5:
                     text2 = "Head Left"
+                    print(text2)
                 elif y > 5:
                     text2 = "Head Right"
+                    print(text2)
                 elif x < -2:
                     text2 = "Head Down"
+                    print(text2)
                 else:
                     text2 = "Head Forward"
+                    print(text2)
 
                 # 코 방향 표시
                 nose_3d_projection, jacobian = cv2.projectPoints(nose_3d, rot_vec, trans_vec, cam_matrix, dist_matrix)
@@ -191,7 +197,7 @@ def test():
                 cv2.putText(frame, text2, (20, 20), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
                 # cv2.putText(printx, printy, (20, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
         # 결과 이미지를 윈도우 창에 표시
-        cv2.imshow('Head Pose, Gaze Tracking Estimation', frame)
+        # cv2.imshow('Head Pose, Gaze Tracking Estimation', frame)
         # q 눌러서 종료
         if cv2.waitKey(1) & 0xFF == ord('q'):
             cap.release()
