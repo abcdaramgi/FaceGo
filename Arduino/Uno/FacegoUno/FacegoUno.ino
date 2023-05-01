@@ -14,6 +14,8 @@ int SpeedPin_A = 10;
 int Dir1Pin_B = 4;      
 int Dir2Pin_B = 5;      
 int SpeedPin_B = 11; 
+int MaxSpeed = 250;
+int MinSpeed = 100;
 //================================================================//
 /* 
 Dir1Pin_A => 자동차 기준 오른편
@@ -31,15 +33,13 @@ void setup() {
   pinMode(SpeedPin_B, OUTPUT);            // PWM제어핀 출력모드 설정
 
   Serial.begin(9600);
+  Serial.println("Start");
 }
  
 void loop() {
-  String front;
-  String back;
-
  if (Serial.available() > 0){                  
     char command = Serial.read();
-    
+
     //===============================================================================//
     //String 문자열 나누기//
     //===============================================================================//
@@ -53,7 +53,8 @@ void loop() {
     // }
     // Serial.println("받은데이터 : " + command + "앞부분 : " + front + "뒷부분 : " + back);
     //===============================================================================//
-    
+
+    // String command = Serial.readString();
     Serial.print("Recived command : ");
     if(command == 'g'){                    
       goForward();
@@ -75,6 +76,22 @@ void loop() {
       engineBreak();
       Serial.println("정지");
     }
+    else if(command == 'z') {
+      accelForward();
+      Serial.println("가속 전진");
+    }
+    else if(command == 'x') {
+      reduceForward();
+      Serial.println("감속 전진"); 
+    }
+    else if(command == 'c') {
+      accelBack();
+      Serial.println("가속 후진"); 
+    }
+    else if(command == 'v') {
+      reduceBack();
+      Serial.println("감속 후진"); 
+    }
     else{
       Serial.println("Wrong command");      
     }
@@ -82,6 +99,7 @@ void loop() {
   
 }
 
+//정지
 void engineBreak(){
   digitalWrite(Dir1Pin_A, LOW);         
   digitalWrite(Dir2Pin_A, LOW);
@@ -93,42 +111,109 @@ void engineBreak(){
 void goForward(){
   digitalWrite(Dir1Pin_A, HIGH);         
   digitalWrite(Dir2Pin_A, LOW);
-  analogWrite(SpeedPin_A, 100);
+  analogWrite(SpeedPin_A, 250);
   
   digitalWrite(Dir1Pin_B, HIGH);         
   digitalWrite(Dir2Pin_B, LOW);
-  analogWrite(SpeedPin_B, 100);
+  analogWrite(SpeedPin_B, 250);
+}
+
+//가속 전진
+void accelForward() { 
+  int currentSpeed = 10;
+  digitalWrite(Dir1Pin_A, HIGH);         
+  digitalWrite(Dir2Pin_A, LOW);
+  
+  digitalWrite(Dir1Pin_B, HIGH);         
+  digitalWrite(Dir2Pin_B, LOW);
+
+  while( currentSpeed <=250) {
+    analogWrite(SpeedPin_A, currentSpeed);
+    analogWrite(SpeedPin_B, currentSpeed);
+    currentSpeed += 10; 
+    delay(200);
+  }    
+}
+
+//전진 감속
+void reduceForward() {
+  int currentSpeed = 250;
+  digitalWrite(Dir1Pin_A, HIGH);         
+  digitalWrite(Dir2Pin_A, LOW);
+  digitalWrite(Dir1Pin_B, HIGH);       
+  digitalWrite(Dir2Pin_B, LOW);
+
+   while (currentSpeed >= 0) {
+    analogWrite(SpeedPin_A, currentSpeed);
+    analogWrite(SpeedPin_B, currentSpeed);
+    currentSpeed -= 30; 
+    delay(200);
+  }
 }
 
 //후진
-void goBack(){
+void goBack() {
   digitalWrite(Dir1Pin_A, LOW);          
-  digitalWrite(Dir2Pin_A, HIGH);
-  analogWrite(SpeedPin_A, 100);          
-  
+  digitalWrite(Dir2Pin_A, HIGH);  
+  analogWrite(SpeedPin_A, 250);      
+
   digitalWrite(Dir1Pin_B, LOW);          
   digitalWrite(Dir2Pin_B, HIGH);
-  analogWrite(SpeedPin_B, 100);
+  analogWrite(SpeedPin_B, 250);
+}
+
+//가속 후진
+void accelBack(){
+  int currentSpeed = 10;
+  digitalWrite(Dir1Pin_A, LOW);         
+  digitalWrite(Dir2Pin_A, HIGH);
+  
+  digitalWrite(Dir1Pin_B, LOW);         
+  digitalWrite(Dir2Pin_B, HIGH);
+
+  while( currentSpeed <=250) {
+    analogWrite(SpeedPin_A, currentSpeed);
+    analogWrite(SpeedPin_B, currentSpeed);
+    currentSpeed += 10; 
+    delay(200);
+  } 
+}
+
+//후진 감속
+void reduceBack() {
+  int currentSpeed = 250;
+  digitalWrite(Dir1Pin_A, LOW);         
+  digitalWrite(Dir2Pin_A, HIGH);
+  digitalWrite(Dir1Pin_B, LOW);       
+  digitalWrite(Dir2Pin_B, HIGH);
+
+   while (currentSpeed >= 0) {
+    analogWrite(SpeedPin_A, currentSpeed);
+    analogWrite(SpeedPin_B, currentSpeed);
+    currentSpeed -= 30; 
+    delay(200);
+  }
 }
 
 //좌회전
 void goLeft(){
   digitalWrite(Dir1Pin_A, HIGH);         
   digitalWrite(Dir2Pin_A, LOW);
-  analogWrite(SpeedPin_A, 150);
+  analogWrite(SpeedPin_A, 200);
   
   digitalWrite(Dir1Pin_B, LOW);         
   digitalWrite(Dir2Pin_B, HIGH);
-  analogWrite(SpeedPin_B, 100);
+  analogWrite(SpeedPin_B, 150);
 }
 
 //우회전
 void goRight(){
   digitalWrite(Dir1Pin_A, LOW);         
   digitalWrite(Dir2Pin_A, HIGH);
-  analogWrite(SpeedPin_A, 100);
+  analogWrite(SpeedPin_A, 150);
   
   digitalWrite(Dir1Pin_B, HIGH);         
   digitalWrite(Dir2Pin_B, LOW);
-  analogWrite(SpeedPin_B, 150);
+  analogWrite(SpeedPin_B, 200);
 }
+
