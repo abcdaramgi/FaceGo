@@ -7,6 +7,7 @@ import threading
 # from Arduino.socket import client
 import TestClient
 import client
+import RealmergeTest
 
 class App:
     def __init__(self, window, window_title):
@@ -58,5 +59,7 @@ if __name__ == '__main__':
     # t1.start()
     # t2 = threading.Thread(target=client.test)
     # t2.start()
-    t = threading.Thread(target=TestClient.test)
+    # t = threading.Thread(target=TestClient.test)
+    # t.start()
+    t = threading.Thread(target=RealmergeTest.kokakola)
     t.start()

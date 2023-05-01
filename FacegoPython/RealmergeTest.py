@@ -93,7 +93,7 @@ def eyesExtractor(img, right_eye_coords, left_eye_coords,right_iris_coords,left_
 def positionEstimator(cropped_eye):
     h, w = cropped_eye.shape
 
-    cv.imshow("crop eye",cropped_eye)
+    # cv.imshow("crop eye",cropped_eye)
     # 눈 이미지에 가우시안 필터 적용
     gaussain_blur = cv.GaussianBlur(cropped_eye, (5, 5), 0)
 
@@ -115,8 +115,8 @@ def positionEstimator(cropped_eye):
 
     #cv.imshow("ga",gaussain_blur)
     #cv.imshow("filter",filtered_image)
-    cv.imshow("th",threshed_eye)
-    cv.imshow("bin",eye_bin)
+    # cv.imshow("th",threshed_eye)
+    # cv.imshow("bin",eye_bin)
     
     #cv.imshow("eye",eye_bin)
 
@@ -148,15 +148,19 @@ def pixelCounter(first_piece, second_piece, third_piece):
     # 인덱스에 따라 눈동자 위치를 반환
     if max_index == 0:
         pos_eye = "RIGHT"
+        print(pos_eye)
         color = [utils.BLACK, utils.GREEN]
     elif max_index == 1:
         pos_eye = 'CENTER'
+        print(pos_eye)
         color = [utils.YELLOW, utils.PINK]
     elif max_index == 2:
         pos_eye = 'LEFT'
+        print(pos_eye)
         color = [utils.GRAY, utils.YELLOW]
     else:
         pos_eye = "Closed"
+        print(pos_eye)
         color = [utils.GRAY, utils.YELLOW]
     return pos_eye, color
 
@@ -165,7 +169,7 @@ def pixelCounter(first_piece, second_piece, third_piece):
 def recalibrate(cropped_eye):
     h, w = cropped_eye.shape
 
-    cv.imshow("crop eye",cropped_eye)
+    # cv.imshow("crop eye",cropped_eye)
     # 눈 이미지에 가우시안 필터 적용
     #(3,3) : 가우시안 블러 커널의 크기, 세로방향3개 가로방향 3개의 픽셀을참조하여 블러링, 클수록 블러링 효과가 강해짐(이미지의 세부 정도도 손실)
     #세 번째 인자인 0 : 가우시안 필터 함수의 x축과 y축의 표준편차(sigma)를 자동으로 계산
@@ -182,9 +186,9 @@ def recalibrate(cropped_eye):
     kernel = cv.getStructuringElement(cv.MORPH_ELLIPSE, (3, 3))
     eye_bin = cv.dilate(threshed_eye, kernel, iterations=1)
 
-    cv.imshow("th",threshed_eye)
-    cv.imshow("bin",eye_bin)
-    cv.imshow('frame', frame)
+    # cv.imshow("th",threshed_eye)
+    # cv.imshow("bin",eye_bin)
+    # cv.imshow('frame', frame)
 
     # 눈 이미지를 5등분하여 각 영역별 픽셀 값 수 계산
     piece = int(w / 5)
@@ -348,6 +352,7 @@ def real_set_eyetracking(frame, crop_left, crop_right):
             return lefteye_left_standard, righteye_left_standard, lefteye_right_standard, righteye_right_standard
 
 def kokakola():
+    global text2
     # 아이트래킹 프로그램 시작
     with map_face_mesh.FaceMesh(max_num_faces=1,refine_landmarks=True,min_detection_confidence=0.5, min_tracking_confidence=0.5) as face_mesh:
         
@@ -514,7 +519,7 @@ def kokakola():
 
                     # 이미지 위에 텍스트 추가
                     cv2.putText(frame, text2, (20, 20), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
-            cv.imshow('frame', frame)
+            # cv.imshow('frame', frame)
             key = cv.waitKey(2)
             if key == ord('q') or key == ord('Q'):
                 break

@@ -53,7 +53,7 @@ def test():
 
     # FaceMesh 초기화
     mp_face_mesh = mp.solutions.face_mesh
-    face_mesh = mp_face_mesh.FaceMesh(max_num_faces=1,refine_landmarks=True,min_detection_confidence=0.5, min_tracking_confidence=0.5) as face_mesh:
+    face_mesh = mp_face_mesh.FaceMesh(max_num_faces=1,refine_landmarks=True,min_detection_confidence=0.5, min_tracking_confidence=0.5)
     
     # 비디오 캡쳐 객체 초기화
     cap = cv2.VideoCapture(0)
