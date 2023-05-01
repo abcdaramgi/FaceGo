@@ -53,8 +53,8 @@ def test():
 
     # FaceMesh 초기화
     mp_face_mesh = mp.solutions.face_mesh
-    face_mesh = mp_face_mesh.FaceMesh(min_detection_confidence=0.5, min_tracking_confidence=0.5)
-
+    face_mesh = mp_face_mesh.FaceMesh(max_num_faces=1,refine_landmarks=True,min_detection_confidence=0.5, min_tracking_confidence=0.5) as face_mesh:
+    
     # 비디오 캡쳐 객체 초기화
     cap = cv2.VideoCapture(0)
 
@@ -105,7 +105,7 @@ def test():
         frame = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
 
         # 시선 정보 업데이트
-        gaze.refresh(frame)
+        # gaze.refresh(frame)
         # horizontal_ratio = gaze.horizontal_ratio()
         # vertical_ratio = gaze.vertical_ratio()
 
