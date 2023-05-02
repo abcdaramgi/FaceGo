@@ -4,9 +4,25 @@ import time
 import utils, math
 import numpy as np
 import threading
+import socket
+import schedule
 from concurrent.futures import ThreadPoolExecutor
 import cv2 #영상 처리
 eye_set_complete = False
+
+text = ""
+text2 = ""
+eyemessage = ""
+
+HOST = '127.0.0.1'
+PORT = 9999
+interval = 0.1
+
+# socket 객체 생성
+client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
+# 지정한 HOST와 PORT 사용하여 서버 접속
+client_socket.connect((HOST, PORT))
 
 FONTS = cv.FONT_HERSHEY_COMPLEX
 
@@ -129,9 +145,9 @@ def positionEstimator(cropped_eye):
     left_piece = eye_bin[0:h, not_center_piece+piece+piece:w]
 
     # 각 영역의 픽셀값 수 계산
-    eye_position, color = pixelCounter(left_piece, center_piece, right_piece)
+    eye_position, color, eyemessage = pixelCounter(left_piece, center_piece, right_piece)
 
-    return eye_position, color
+    return eye_position, color, eyemessage
 
 # 각 영역별로 픽셀 값을 계산하여 눈동자 위치를 반환하는 함수
 def pixelCounter(first_piece, second_piece, third_piece):
@@ -149,20 +165,24 @@ def pixelCounter(first_piece, second_piece, third_piece):
     if max_index == 0:
         pos_eye = "RIGHT"
         print(pos_eye)
+        eyemessage = pos_eye
         color = [utils.BLACK, utils.GREEN]
     elif max_index == 1:
         pos_eye = 'CENTER'
         print(pos_eye)
+        eyemessage = pos_eye
         color = [utils.YELLOW, utils.PINK]
     elif max_index == 2:
         pos_eye = 'LEFT'
         print(pos_eye)
+        eyemessage = pos_eye
         color = [utils.GRAY, utils.YELLOW]
     else:
         pos_eye = "Closed"
         print(pos_eye)
+        eyemessage = pos_eye
         color = [utils.GRAY, utils.YELLOW]
-    return pos_eye, color
+    return pos_eye, color, eyemessage
 
 
 # 눈동자 위치 추정
@@ -352,6 +372,7 @@ def real_set_eyetracking(frame, crop_left, crop_right):
             return lefteye_left_standard, righteye_left_standard, lefteye_right_standard, righteye_right_standard
 
 def kokakola():
+    print("시작해요~")
     global text2
     # 아이트래킹 프로그램 시작
     with map_face_mesh.FaceMesh(max_num_faces=1,refine_landmarks=True,min_detection_confidence=0.5, min_tracking_confidence=0.5) as face_mesh:
@@ -398,11 +419,11 @@ def kokakola():
                 # cv.imshow('right', crop_right)
                 # cv.imshow('left', crop_left)
                 
-                eye_position_right, color = positionEstimator(crop_right)
+                eye_position_right, color, eyemessage = positionEstimator(crop_right)
                 utils.colorBackgroundText(frame, f'R: {eye_position_right}', FONTS, 1.0, (40, 220), 2, color[0], color[1], 8, 8)
 
                 # 프레임에 눈의 위치와 색상을 나타내는 텍스트 추가
-                eye_position_left, color = positionEstimator(crop_left)
+                eye_position_left, color, eyemessage = positionEstimator(crop_left)
                 utils.colorBackgroundText(frame, f'L: {eye_position_left}', FONTS, 1.0, (40, 320), 2, color[0], color[1], 8, 8)
                 
                 # if set_finish == False:
@@ -497,15 +518,19 @@ def kokakola():
                     if y < -5:
                         text2 = "Head Left"
                         print(text2)
+                        headmessage = text2
                     elif y > 5:
                         text2 = "Head Right"
                         print(text2)
+                        headmessage = text2
                     elif x < -2:
                         text2 = "Head Down"
                         print(text2)
+                        headmessage = text2
                     else:
                         text2 = "Head Forward"
                         print(text2)
+                        headmessage = 'g'
 
                     # 코 방향 표시
                     nose_3d_projection, jacobian = cv2.projectPoints(nose_3d, rot_vec, trans_vec, cam_matrix, dist_matrix)
@@ -519,6 +544,23 @@ def kokakola():
 
                     # 이미지 위에 텍스트 추가
                     cv2.putText(frame, text2, (20, 20), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
+                    # cv2.putText(printx, printy, (20, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
+
+                    # message = say_hello() # 함수 호출하여 결과를 변수에 저장
+                    message = headmessage + ' ' + eyemessage
+                    print(message) # 결과 출력(확인용)
+                    time.sleep(interval) # 일정 시간 동안 대기
+                    # q 입력 시 종료
+                    if message == 'q':
+                        client_socket.close()
+                    if message != None:
+                        # 입력한 message 전송
+                        client_socket.sendall(message.encode())
+
+                        # 메시지 수신
+                        data = client_socket.recv(1024)
+                        print('Received', repr(data.decode()))
+                        message = None
             # cv.imshow('frame', frame)
             key = cv.waitKey(2)
             if key == ord('q') or key == ord('Q'):

@@ -38,24 +38,25 @@ void setup() {
  
 void loop() {
  if (Serial.available() > 0){                  
-    char command = Serial.read();
+    // char command = Serial.read();
 
     //===============================================================================//
     //String 문자열 나누기//
     //===============================================================================//
-    // String command = Serial.readStringUntil('\n');
-    // command.trim(); // 문자열의 앞뒤의 공백 제거
-    // //공백을 기준으로 문자열 분리하기
-    // int spaceIndex = command.indexOf(' '); // 공백의 인덱스 찾기
-    // if (spaceIndex != -1) { // 공백이 존재할 경우
-    //   front = command.substring(0, spaceIndex); // 'hello' 부분 추출
-    //   back = command.substring(spaceIndex + 1); // 'me' 부분 추출
-    // }
-    // Serial.println("받은데이터 : " + command + "앞부분 : " + front + "뒷부분 : " + back);
+    String command = Serial.readStringUntil('\n');
+    command.trim(); // 문자열의 앞뒤의 공백 제거
+    //공백을 기준으로 문자열 분리하기
+    int spaceIndex = command.indexOf(' '); // 공백의 인덱스 찾기
+    if (spaceIndex != -1) { // 공백이 존재할 경우
+      front = command.substring(0, spaceIndex); // 'hello' 부분 추출
+      back = command.substring(spaceIndex + 1); // 'me' 부분 추출
+    }
+    Serial.println("받은데이터 : " + command + "앞부분 : " + front + "뒷부분 : " + back);
     //===============================================================================//
 
     // String command = Serial.readString();
     Serial.print("Recived command : ");
+    //headCommand
     if(command == 'g'){                    
       goForward();
       Serial.println("직진"); 
@@ -76,6 +77,7 @@ void loop() {
       engineBreak();
       Serial.println("정지");
     }
+    //eyeCommand
     else if(command == 'z') {
       accelForward();
       Serial.println("가속 전진");

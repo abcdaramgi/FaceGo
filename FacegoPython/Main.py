@@ -5,7 +5,7 @@ import numpy as np
 import facego
 import threading
 # from Arduino.socket import client
-import TestClient
+# import TestClient
 import client
 import RealmergeTest
 
