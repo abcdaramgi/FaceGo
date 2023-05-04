@@ -14,7 +14,7 @@ text = ""
 text2 = ""
 eyemessage = ""
 
-HOST = '127.0.0.1'
+HOST = '192.168.137.4'
 PORT = 9999
 interval = 0.1
 
@@ -166,21 +166,45 @@ def pixelCounter(first_piece, second_piece, third_piece):
         pos_eye = "RIGHT"
         print(pos_eye)
         eyemessage = pos_eye
+        if text2 == "Head Left":
+            eyemessage = 'l'
+        elif text2 == "Head Right":
+            eyemessage = 'r'
+        else :
+            eyemessage = 's'
         color = [utils.BLACK, utils.GREEN]
     elif max_index == 1:
         pos_eye = 'CENTER'
         print(pos_eye)
         eyemessage = pos_eye
+        if text2 == "Head Left":
+            eyemessage = 'l'
+        elif text2 == "Head Right":
+            eyemessage = 'r'
+        else :
+            eyemessage = 'g'
         color = [utils.YELLOW, utils.PINK]
     elif max_index == 2:
         pos_eye = 'LEFT'
         print(pos_eye)
         eyemessage = pos_eye
+        if text2 == "Head Left":
+            eyemessage = 'l'
+        elif text2 == "Head Right":
+            eyemessage = 'r'
+        else :
+            eyemessage = 's'
         color = [utils.GRAY, utils.YELLOW]
     else:
         pos_eye = "Closed"
         print(pos_eye)
         eyemessage = pos_eye
+        if text2 == "Head Left":
+            eyemessage = 'l'
+        elif text2 == "Head Right":
+            eyemessage = 'r'
+        else :
+            eyemessage = 's'
         color = [utils.GRAY, utils.YELLOW]
     return pos_eye, color, eyemessage
 
@@ -518,15 +542,15 @@ def kokakola():
                     if y < -5:
                         text2 = "Head Left"
                         print(text2)
-                        headmessage = text2
+                        headmessage = 'l'
                     elif y > 5:
                         text2 = "Head Right"
                         print(text2)
-                        headmessage = text2
+                        headmessage = 'r'
                     elif x < -2:
                         text2 = "Head Down"
                         print(text2)
-                        headmessage = text2
+                        headmessage = 's'
                     else:
                         text2 = "Head Forward"
                         print(text2)
@@ -547,7 +571,7 @@ def kokakola():
                     # cv2.putText(printx, printy, (20, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
 
                     # message = say_hello() # 함수 호출하여 결과를 변수에 저장
-                    message = headmessage + ' ' + eyemessage
+                    message = eyemessage
                     print(message) # 결과 출력(확인용)
                     time.sleep(interval) # 일정 시간 동안 대기
                     # q 입력 시 종료
