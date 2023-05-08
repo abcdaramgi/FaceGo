@@ -21,11 +21,11 @@ HOST = '192.168.137.4'
 PORT = 9999
 interval = 0.1
 
-# socket 객체 생성
-client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+# # socket 객체 생성
+# client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
-# 지정한 HOST와 PORT 사용하여 서버 접속
-client_socket.connect((HOST, PORT))
+# # 지정한 HOST와 PORT 사용하여 서버 접속
+# client_socket.connect((HOST, PORT))
 
 FONTS = cv.FONT_HERSHEY_COMPLEX
 
@@ -577,20 +577,23 @@ def kokakola():
                     message = eyemessage
                     print(message) # 결과 출력(확인용)
                     time.sleep(interval) # 일정 시간 동안 대기
-                    # q 입력 시 종료
-                    if message == 'q':
-                        client_socket.close()
-                    if message != None:
-                        # 입력한 message 전송
-                        client_socket.sendall(message.encode())
+                    # # q 입력 시 종료
+                    # if message == 'q':
+                    #     client_socket.close()
+                    # if message != None:
+                    #     # 입력한 message 전송
+                    #     client_socket.sendall(message.encode())
 
-                        # 메시지 수신
-                        data = client_socket.recv(1024)
-                        print('Received', repr(data.decode()))
-                        message = None
+                    #     # 메시지 수신
+                    #     data = client_socket.recv(1024)
+                    #     print('Received', repr(data.decode()))
+                    #     message = None
             # cv.imshow('frame', frame)
             key = cv.waitKey(2)
             if key == ord('q') or key == ord('Q'):
                 break
         cv.destroyAllWindows()
         camera.release()
+
+
+kokakola()
