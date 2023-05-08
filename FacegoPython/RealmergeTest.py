@@ -8,6 +8,9 @@ import socket
 import schedule
 from concurrent.futures import ThreadPoolExecutor
 import cv2 #영상 처리
+
+from FacegoPython.facego_eyetracker import color
+
 eye_set_complete = False
 
 text = ""
