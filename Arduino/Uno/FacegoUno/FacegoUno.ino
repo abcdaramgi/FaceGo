@@ -14,8 +14,8 @@ int SpeedPin_A = 10;
 int Dir1Pin_B = 4;      
 int Dir2Pin_B = 5;      
 int SpeedPin_B = 11; 
-int MaxSpeed = 250;
-int MinSpeed = 100;
+int MaxSpeed = 130;
+int MinSpeed = 70;
 
 int basicSpeed = 85;
 int CurrentSpeed = 0;
@@ -170,9 +170,17 @@ void engineBreak(){
 //전진
 void goForward(){
   initCurrentSpeed();
+
   Serial.print("직진입니다 : ");
   Serial.print(CurrentSpeed);
+
   CurrentSpeed += 1;
+
+  if(CurrentSpeed > MaxSpeed){
+    CurrentSpeed = MaxSpeed;
+    Serial.print("최고속도 도달");
+  }
+
   digitalWrite(Dir1Pin_A, HIGH);         
   digitalWrite(Dir2Pin_A, LOW);
   analogWrite(SpeedPin_A, CurrentSpeed);
@@ -185,12 +193,22 @@ void goForward(){
 //좌회전
 void goLeft(){
   initLeftRightSpeed(0);
+
   rightFlag = true;
-  RightSpeed += 1;
-  LeftSpeed -= 1;
+
+  // RightSpeed += 2;
+  // LeftSpeed -= 1;
+  RightSpeed = 170;
+  LeftSpeed = 60;
+
   if(LeftSpeed <= 0){
       LeftSpeed = 0;
   }
+  if(RightSpeed > MaxSpeed){
+    RightSpeed = MaxSpeed;
+    Serial.print("좌회전 최고속도 도달");
+  }
+
   Serial.print("R : ");
   Serial.print(RightSpeed);
   Serial.print("  L : ");
@@ -234,12 +252,24 @@ void goLeft(){
 //우회전
 void goRight(){
   initLeftRightSpeed(1);
+
   leftFlag = true;
-  RightSpeed -= 1;
-  LeftSpeed += 1;
+
+  // RightSpeed -= 1;
+  // LeftSpeed += 1;
+
+  RightSpeed = 60;
+  LeftSpeed = 170;
+
+
   if(RightSpeed <= 0){
       RightSpeed = 0;
   }
+  if(LeftSpeed > MaxSpeed){
+    LeftSpeed = MaxSpeed;
+    Serial.print("우회전 최고속도 도달");
+  }
+
   Serial.print("R : ");
   Serial.print(RightSpeed);
   Serial.print("  L : ");
