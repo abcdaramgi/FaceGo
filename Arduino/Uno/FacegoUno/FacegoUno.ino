@@ -27,6 +27,8 @@ bool controlFlag = true;
 bool leftFlag = true;
 bool rightFlag = true;
 
+bool testFlag = true;
+
 String head;
 String eye;
 //================================================================//
@@ -131,6 +133,7 @@ void engineBreak(){
   controlFlag = true;
   leftFlag = true;
   rightFlag = true;
+  testFlag = true;
   if(CurrentSpeed != 0){
     CurrentSpeed -= 10;
     if(CurrentSpeed <= 0){
@@ -183,14 +186,11 @@ void goForward(){
 void goLeft(){
   initLeftRightSpeed(0);
   rightFlag = true;
-  
-  RightSpeed += 2;
-  LeftSpeed -= 10;
-
+  RightSpeed += 1;
+  LeftSpeed -= 1;
   if(LeftSpeed <= 0){
       LeftSpeed = 0;
   }
-  Serial.print("좌회전입니다 : ");
   Serial.print("R : ");
   Serial.print(RightSpeed);
   Serial.print("  L : ");
@@ -203,22 +203,43 @@ void goLeft(){
   digitalWrite(Dir1Pin_B, HIGH);         
   digitalWrite(Dir2Pin_B, LOW);
   analogWrite(SpeedPin_B, LeftSpeed);
-
-  saveCurrentSpeed(true);
 }
+// void goLeft(){
+//   initLeftRightSpeed(0);
+//   rightFlag = true;
+  
+//   RightSpeed += 2;
+//   LeftSpeed -= 10;
+
+//   if(LeftSpeed <= 0){
+//       LeftSpeed = 0;
+//   }
+//   Serial.print("좌회전입니다 : ");
+//   Serial.print("R : ");
+//   Serial.print(RightSpeed);
+//   Serial.print("  L : ");
+//   Serial.print(LeftSpeed);
+
+//   digitalWrite(Dir1Pin_A, HIGH);         
+//   digitalWrite(Dir2Pin_A, LOW);
+//   analogWrite(SpeedPin_A, RightSpeed);
+  
+//   digitalWrite(Dir1Pin_B, HIGH);         
+//   digitalWrite(Dir2Pin_B, LOW);
+//   analogWrite(SpeedPin_B, LeftSpeed);
+
+//   saveCurrentSpeed(true);
+// }
 
 //우회전
 void goRight(){
   initLeftRightSpeed(1);
   leftFlag = true;
-
-  RightSpeed -= 10;
-  LeftSpeed += 2;
-
+  RightSpeed -= 1;
+  LeftSpeed += 1;
   if(RightSpeed <= 0){
       RightSpeed = 0;
   }
-  Serial.print("우회전입니다 : ");
   Serial.print("R : ");
   Serial.print(RightSpeed);
   Serial.print("  L : ");
@@ -231,9 +252,33 @@ void goRight(){
   digitalWrite(Dir1Pin_B, HIGH);         
   digitalWrite(Dir2Pin_B, LOW);
   analogWrite(SpeedPin_B, LeftSpeed);
-
-  saveCurrentSpeed(false);
 }
+// void goRight(){
+//   initLeftRightSpeed(1);
+//   leftFlag = true;
+
+//   RightSpeed -= 10;
+//   LeftSpeed += 2;
+
+//   if(RightSpeed <= 0){
+//       RightSpeed = 0;
+//   }
+//   Serial.print("우회전입니다 : ");
+//   Serial.print("R : ");
+//   Serial.print(RightSpeed);
+//   Serial.print("  L : ");
+//   Serial.print(LeftSpeed);
+
+//   digitalWrite(Dir1Pin_A, HIGH);         
+//   digitalWrite(Dir2Pin_A, LOW);
+//   analogWrite(SpeedPin_A, RightSpeed);
+  
+//   digitalWrite(Dir1Pin_B, HIGH);         
+//   digitalWrite(Dir2Pin_B, LOW);
+//   analogWrite(SpeedPin_B, LeftSpeed);
+
+//   saveCurrentSpeed(false);
+// }
 //==========================================================================//
 //==========================================================================//
 void initCurrentSpeed(){
@@ -245,24 +290,33 @@ void initCurrentSpeed(){
 }
 
 void initLeftRightSpeed(int control){
-  if(CurrentSpeed == 0){
-    CurrentSpeed = basicSpeed;
-  }
+  // if(CurrentSpeed == 0){
+    // CurrentSpeed = basicSpeed;
+  // }
   //좌회전 호출됬을때
   if(leftFlag && control == 0){
     Serial.print("좌회전호출로초기화");
-    RightSpeed = CurrentSpeed;
-    LeftSpeed = CurrentSpeed - 10;
+    // RightSpeed = CurrentSpeed;
+    // LeftSpeed = CurrentSpeed - 10;
+    RightSpeed = basicSpeed;
+    LeftSpeed = basicSpeed;
     leftFlag = false;
-    
   }
   //우회전 호출됬을때
   else if(rightFlag && control == 1){
     Serial.print("우회전호출로초기화");
-    RightSpeed = CurrentSpeed - 10;
-    LeftSpeed = CurrentSpeed;
+    // RightSpeed = CurrentSpeed - 10;
+    // LeftSpeed = CurrentSpeed;
+    RightSpeed = basicSpeed;
+    LeftSpeed = basicSpeed;
     rightFlag = false;
   }
+  // if(testFlag && control == 2) {
+  //   Serial.print("좌우속도 초기화");
+  //   LeftSpeed = basicSpeed;
+  //   RightSpeed = basicSpeed;
+  //   testFlag = false;
+  // }
 }
 
 void saveCurrentSpeed(bool boolean){
