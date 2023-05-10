@@ -4,9 +4,18 @@ import time
 import utils, math
 import numpy as np
 import threading
+import queue
 from concurrent.futures import ThreadPoolExecutor
 
 eye_set_complete = False
+set_finish = False
+count_down_count = 0
+
+count_T = False
+count_D = False
+count = 1
+result_queue = queue.Queue()
+
 
 FONTS = cv.FONT_HERSHEY_COMPLEX
 
@@ -31,10 +40,7 @@ RIGHT_IRIS = [469, 470, 471, 472]
 map_face_mesh = mp.solutions.face_mesh
 camera = cv.VideoCapture(0)
 
-set_finish = False
 
-count_T = False
-count_D = False
 
 
 def landmarksDetection(img, results, draw=False):
@@ -267,12 +273,12 @@ def recalibrate(cropped_eye):
 
 #                 return lefteye_left_standard, righteye_left_standard, lefteye_right_standard, righteye_right_standard
 
-def real_set_eyetracking(frame, crop_left, crop_right):
+# def real_set_eyetracking(frame, crop_left, crop_right, result_queue):
     count = 0
     print("real_set_eyetracking run!")
     
     cv.circle(frame, (240, 350), 30, (0, 0, 255), 2)
-    utils.colorBackgroundText(frame, f'Look Right circle for 3 seconds ', FONTS, 1.0, (350, 150), 2, color[0], color[1], 8, 8)
+    utils.colorBackgroundText(frame, f'Look Left circle for 3 seconds ', FONTS, 1.0, (350, 150), 2, color[0], color[1], 8, 8)
 
     # event = threading.Event()
     # countdown_thread = Countdown(event, lambda: frame)
@@ -281,21 +287,16 @@ def real_set_eyetracking(frame, crop_left, crop_right):
     while True:
     # if countdown_thread.is_countdown_finished:
         # print("Count Down Finish!")
-        # print("CountDown : " ,count)
+        print("CountDown : " ,count)
         count += 1
         if count == 1: 
-            # print("CountDown = 1")
+            
             lefteye_left_standard = recalibrate(crop_left)
             righteye_left_standard = recalibrate(crop_right)
-            print("Before Event Clear")
-            # event.clear()
-            print("After Event Clear")
-            # countdown_thread = Countdown(event, lambda: frame)
-            # countdown_thread.start()
-            print("Restart Thread")
+            
 
         # elif count == 2:
-        if count_D == True:
+        if count == 2:
             cv.circle(frame, (680, 350), 30, (0, 0, 255), 2)
             utils.colorBackgroundText(frame, f'Look Right Circle for 3 seconds', FONTS, 1.0, (350, 150), 2, color[0], color[1], 8, 8)
 
@@ -304,57 +305,70 @@ def real_set_eyetracking(frame, crop_left, crop_right):
 
             utils.colorBackgroundText(frame, f'Set Finish!', FONTS, 1.0, (350, 150), 2, color[0], color[1], 8, 8)
 
-            print("dk")
             global set_finish
             set_finish=True #real 어쩌구가 끝나야 초기설정이 끝난거임
-            return lefteye_left_standard, righteye_left_standard, lefteye_right_standard, righteye_right_standard
+            result_queue.put((lefteye_left_standard, righteye_left_standard, lefteye_right_standard, righteye_right_standard))
+            return
+            # return lefteye_left_standard, righteye_left_standard, lefteye_right_standard, righteye_right_standard
+def real_set_eyetracking(frame, crop_left, crop_right, result_queue):
+    global set_finish
+    global count_D
+    global count
+    #if count_D == True:
+    if set_finish == False:
+        print("real_set_eyetracking run!")
+
+        while True:
+            
+            print("count : ", count)
+            if count == 1:  
+                cv.circle(frame, (240, 350), 30, (0, 0, 255), 2)
+                utils.colorBackgroundText(frame, f'Look Left circle for 3 seconds ', FONTS, 1.0, (350, 150), 2, color[0], color[1], 8, 8)
+                timer = threading.Thread(target=Countdown)
+                timer.start()
+                timer.join()
+                lefteye_left_standard = recalibrate(crop_left)
+                righteye_left_standard = recalibrate(crop_right)
+
+            elif count == 2:
+                
+                cv.circle(frame, (680, 350), 30, (0, 0, 255), 2)
+                utils.colorBackgroundText(frame, f'Look Right Circle for 3 seconds', FONTS, 1.0, (350, 150), 2, color[0], color[1], 8, 8)
+
+                timer = threading.Thread(target=Countdown)
+                timer.start()
+                timer.join()
+
+                lefteye_right_standard = recalibrate(crop_left)
+                righteye_right_standard = recalibrate(crop_right)
+
+                utils.colorBackgroundText(frame, f'Set Finish!', FONTS, 1.0, (350, 150), 2, color[0], color[1], 8, 8)
+            
+                set_finish=True #real 어쩌구가 끝나야 초기설정이 끝난거임
+                result_queue.put((lefteye_left_standard, righteye_left_standard, lefteye_right_standard, righteye_right_standard))
+                return
 
 
 def Countdown():
-    # for i in range(10):
-    time.sleep(2)
-    global count_D 
-    count_D= True
-
-# class Countdown(threading.Thread):
-
-        
-    
-    # def __init__(self, event, set_frame_callback):
-    #     super().__init__()
-    #     self.event = event
-    #     self.is_countdown_finished = False
-    #     self.countdown = 3
-    #     self.set_frame_callback = set_frame_callback
-        
-    # def run(self):
-    #     while self.countdown > 0 and not self.event.is_set():
-    #         print("CountDown run!")
-    #         # 카운트다운 텍스트 생성
-    #         text = f'{self.countdown}'
-    #         (text_width, text_height), _ = cv.getTextSize(text, cv.FONT_HERSHEY_SIMPLEX, 2, 2)
-    #         x = int((640 - text_width) / 2)
-    #         y = int((480 - text_height) / 2)
-    #         frame = self.set_frame_callback()
-            
-    #         # 1초 대기
-    #         time.sleep(1)  
-    #         print(text)
-    #         self.countdown -= 1
-        
-        # 카운트다운 종료
-        # count_D = True
-        # self.is_countdown_finished = True
-        # self.event.set()
-
+    global count_down_count
+    global count
+    if count_down_count < 2:
+        print("CountDown Run~~~~~~~~~~~~~`")
+        time.sleep(2)
+        global count_D 
+        count_D = True 
+        count_down_count += 1
+        count+=1
+    elif count_down_count == 2:
+        return
 
 
 # 아이트래킹 프로그램 시작
 with map_face_mesh.FaceMesh(max_num_faces=1,refine_landmarks=True,min_detection_confidence=0.5, min_tracking_confidence=0.5) as face_mesh:
     
 
-    # ThreadPoolExecutor 객체 생성
-    executor = ThreadPoolExecutor(max_workers=2)
+    # # ThreadPoolExecutor 객체 생성
+    # executor = ThreadPoolExecutor(max_workers=2)
     while True:
         ret, frame = camera.read()
         if not ret:
@@ -371,7 +385,7 @@ with map_face_mesh.FaceMesh(max_num_faces=1,refine_landmarks=True,min_detection_
 
         #RGB 프레임으로 변환
         rgb_frame = cv.cvtColor(frame, cv.COLOR_RGB2BGR)
-
+        #-----------------------------------------------------------------------------------------------프레임 설정
         # FaceMesh 모듈의 process() 함수를 사용하여 얼굴 랜드마크 추출
         results = face_mesh.process(rgb_frame)
 
@@ -408,73 +422,59 @@ with map_face_mesh.FaceMesh(max_num_faces=1,refine_landmarks=True,min_detection_
 
             # elif set_finish == True:
 
-            # print("dsad632465887987998879978dasdas")
             current_l_pixel = recalibrate(crop_left)
             current_r_pixel = recalibrate(crop_right)
             utils.colorBackgroundText(frame, f'L: {current_l_pixel}', FONTS, 1.0, (350, 50), 2, color[0], color[1], 8, 8)
             utils.colorBackgroundText(frame, f'R: {current_r_pixel}', FONTS, 1.0, (600, 50), 2, color[0], color[1], 8, 8)
             
             if set_finish == True:
-                result = result_thread
-                # result = real_set_eyetracking(*args)  # 결과값 저장
-                utils.colorBackgroundText(frame, f'LE.left_circle: {result[0]}', FONTS, 1.0, (400, 450), 2, color[0], color[1], 8, 8)
-                utils.colorBackgroundText(frame, f'RE.left_circle: {result[1]}', FONTS, 1.0, (400, 500), 2, color[0], color[1], 8, 8)
-                utils.colorBackgroundText(frame, f'LE.Right_circle: {result[2]}', FONTS, 1.0, (400, 550), 2, color[0], color[1], 8, 8)
-                utils.colorBackgroundText(frame, f'RE.Right_circle: {result[3]}', FONTS, 1.0, (400, 600), 2, color[0], color[1], 8, 8)
+
+                result = result_queue.get()
                 
-            # print("dsa54353453453as")
-
-            # utils.colorBackgroundText(frame, f'LE.left_circle: {eyetracking_standard[0]}', FONTS, 1.0, (400, 450), 2, color[0], color[1], 8, 8)
-            # utils.colorBackgroundText(frame, f'RE.left_circle: {eyetracking_standard[1]}', FONTS, 1.0, (400, 500), 2, color[0], color[1], 8, 8)
-            # utils.colorBackgroundText(frame, f'LE.Right_circle: {eyetracking_standard[2]}', FONTS, 1.0, (400, 550), 2, color[0], color[1], 8, 8)
-            # utils.colorBackgroundText(frame, f'RE.Right_circle: {eyetracking_standard[3]}', FONTS, 1.0, (400, 600), 2, color[0], color[1], 8, 8)
-            
-            # # ---------------------------------------------------------------------------------------------------------------------문제의 쓰레드 파트---------------------------
-            # # ThreadPoolExecutor 객체 생성 executor가 계속해서 무한 생성 되서 500개 넘개 생김 이렇게 쓰면 안됨
-            # executor = ThreadPoolExecutor(max_workers=1) # 최대 1개의 worker를 가질 수 있도록 설정
-            
-            # # set_complete가 FALSE이면, 아이트래킹 설정을 안했다면
-            # if eye_set_complete == False:
-
-            #     # threading.Thread(target=set_eyetracking()) 
-            #     # submit() : 비동기 실행 결과를 나타내는 Future객체를 반환, 
-            #     future = executor.submit(set_eyetracking, frame)
-                
-            # # 아이트래킹 설정을 완료했고, future객체가 작업을 완료 하였으면
-            # if eye_set_complete and future.done():
-
-            #     result = future.result() # future.result : Future 객체의 실핼 결과를 가져옴
-            #     utils.colorBackgroundText(frame, f'RE_LS: {result[0]}', FONTS, 1.0, (600, 120), 2, color[0], color[1], 8, 8)
-            #     utils.colorBackgroundText(frame, f'RE_RS: {result[1]}', FONTS, 1.0, (600, 240), 2, color[0], color[1], 8, 8)
-            #     utils.colorBackgroundText(frame, f'RE_LS: {result[2]}', FONTS, 1.0, (600, 360), 2, color[0], color[1], 8, 8)
-            #     utils.colorBackgroundText(frame, f'RE_RS: {result[3]}', FONTS, 1.0, (600, 480), 2, color[0], color[1], 8, 8)
+                print(result[0],result[1],result[2],result[3])
+                set_finish = False
+           
             # # -----------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-        cv.imshow('frame', frame)
-        key = cv.waitKey(2)
+
+
+        
 
         if count_T == False:
-                count_T = True
+                
                 # submit() 메서드로 Future 객체를 반환받음
                 # future = executor.submit(real_set_eyetracking, frame, crop_left, crop_right)
                 # # Future 객체의 결과값(result)를 반환받을 수 있음
                 # result = future.result()
                 # future.cancel()
                 # result = threading.Thread(target = real_set_eyetracking(frame, crop_left, crop_right))
-                result_thread = threading.Thread(target=real_set_eyetracking, args=(frame, crop_left, crop_right))
+                result_thread = threading.Thread(target=real_set_eyetracking, args=(frame, crop_left, crop_right, result_queue))
                 result_thread.start()
-                
-                timer = threading.Thread(target=Countdown)
-                timer.start()
+                # timer = threading.Thread(target=Countdown)
+                # timer.start()
+
+                count_T = True
 
                 # result = result_thread.result()
                 # threading.Thread(target=Countdown, args=())
                 # result_thread.join()  # 쓰레드 종료 대기
-        
-        print(timer.is_alive())
-        print("카운트디   ", count_D)
-        print("결과"  ,result_thread.is_alive())
-        
+        print("------------------------------------------------------")
+        print("Count_T : ", count_T)
+        print("Count_D : ", count_D)
+        print("set_finish : ", set_finish)
+        # print("timer_thread_is_alive : ", timer.is_alive())
+        # print("real_set_eyetracking_is_alive : "  ,result_thread.is_alive())
+
+        if count == 1:
+            cv.circle(frame, (240, 350), 30, (0, 0, 255), 2)
+            utils.colorBackgroundText(frame, f'Look Left circle for 3 seconds ', FONTS, 1.0, (350, 150), 2, color[0], color[1], 8, 8)
+            
+        elif count == 2:
+            cv.circle(frame, (680, 350), 30, (0, 0, 255), 2)
+            utils.colorBackgroundText(frame, f'Look Right Circle for 3 seconds', FONTS, 1.0, (350, 150), 2, color[0], color[1], 8, 8)
+
+        cv.imshow('frame', frame)
+        key = cv.waitKey(2)    
         if key == ord('q') or key == ord('Q'):
             break
     cv.destroyAllWindows()
