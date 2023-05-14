@@ -310,26 +310,29 @@ def recalibrate(cropped_eye):
             result_queue.put((lefteye_left_standard, righteye_left_standard, lefteye_right_standard, righteye_right_standard))
             return
             # return lefteye_left_standard, righteye_left_standard, lefteye_right_standard, righteye_right_standard
-def real_set_eyetracking(frame, crop_left, crop_right, result_queue):
+def real_set_eyetracking(frame, crop_left, crop_right):
     global set_finish
     global count_D
     global count
+    global result_queue
     #if count_D == True:
     if set_finish == False:
-        print("real_set_eyetracking run!")
+        # print("real_set_eyetracking run!")
 
         while True:
             
-            print("count : ", count)
+            # print("count : ", count)
             if count == 1:  
                 cv.circle(frame, (240, 350), 30, (0, 0, 255), 2)
                 utils.colorBackgroundText(frame, f'Look Left circle for 3 seconds ', FONTS, 1.0, (350, 150), 2, color[0], color[1], 8, 8)
                 timer = threading.Thread(target=Countdown)
                 timer.start()
                 timer.join()
+
                 lefteye_left_standard = recalibrate(crop_left)
                 righteye_left_standard = recalibrate(crop_right)
 
+                result_queue.put((lefteye_left_standard, righteye_left_standard))
             elif count == 2:
                 
                 cv.circle(frame, (680, 350), 30, (0, 0, 255), 2)
@@ -344,8 +347,8 @@ def real_set_eyetracking(frame, crop_left, crop_right, result_queue):
 
                 utils.colorBackgroundText(frame, f'Set Finish!', FONTS, 1.0, (350, 150), 2, color[0], color[1], 8, 8)
             
-                set_finish=True #real 어쩌구가 끝나야 초기설정이 끝난거임
-                result_queue.put((lefteye_left_standard, righteye_left_standard, lefteye_right_standard, righteye_right_standard))
+                set_finish = True #real 어쩌구가 끝나야 초기설정이 끝난거임
+                result_queue.put((lefteye_right_standard, righteye_right_standard))
                 return
 
 
@@ -426,20 +429,15 @@ with map_face_mesh.FaceMesh(max_num_faces=1,refine_landmarks=True,min_detection_
             current_r_pixel = recalibrate(crop_right)
             utils.colorBackgroundText(frame, f'L: {current_l_pixel}', FONTS, 1.0, (350, 50), 2, color[0], color[1], 8, 8)
             utils.colorBackgroundText(frame, f'R: {current_r_pixel}', FONTS, 1.0, (600, 50), 2, color[0], color[1], 8, 8)
+
             
             if set_finish == True:
-
-                result = result_queue.get()
                 
-                print(result[0],result[1],result[2],result[3])
+                result = result_queue.get()
+                print(result[0],result[1])
                 set_finish = False
            
             # # -----------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-
-
-        
-
         if count_T == False:
                 
                 # submit() 메서드로 Future 객체를 반환받음
@@ -448,7 +446,7 @@ with map_face_mesh.FaceMesh(max_num_faces=1,refine_landmarks=True,min_detection_
                 # result = future.result()
                 # future.cancel()
                 # result = threading.Thread(target = real_set_eyetracking(frame, crop_left, crop_right))
-                result_thread = threading.Thread(target=real_set_eyetracking, args=(frame, crop_left, crop_right, result_queue))
+                result_thread = threading.Thread(target=real_set_eyetracking, args=(frame, crop_left, crop_right))
                 result_thread.start()
                 # timer = threading.Thread(target=Countdown)
                 # timer.start()
@@ -458,10 +456,10 @@ with map_face_mesh.FaceMesh(max_num_faces=1,refine_landmarks=True,min_detection_
                 # result = result_thread.result()
                 # threading.Thread(target=Countdown, args=())
                 # result_thread.join()  # 쓰레드 종료 대기
-        print("------------------------------------------------------")
-        print("Count_T : ", count_T)
-        print("Count_D : ", count_D)
-        print("set_finish : ", set_finish)
+        # print("------------------------------------------------------")
+        # print("Count_T : ", count_T)
+        # print("Count_D : ", count_D)
+        # print("set_finish : ", set_finish)
         # print("timer_thread_is_alive : ", timer.is_alive())
         # print("real_set_eyetracking_is_alive : "  ,result_thread.is_alive())
 
