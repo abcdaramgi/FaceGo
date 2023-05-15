@@ -29,8 +29,6 @@ interval = 0.1
 # socket 객체 생성
 client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
-# 지정한 HOST와 PORT 사용하여 서버 접속
-client_socket.connect((HOST, PORT))
 
 FONTS = cv.FONT_HERSHEY_COMPLEX
 
@@ -407,14 +405,12 @@ with map_face_mesh.FaceMesh(max_num_faces=1,refine_landmarks=True,min_detection_
 
 
             if set_finish == True:
-                
                 result = result_queue.get()
                 print(result[0],result[1])
                 set_finish = False
            
             # # -----------------------------------------------------------------------------------------------------------------------------------------------------------------
         if count_T == False:
-                
                 # submit() 메서드로 Future 객체를 반환받음
                 # future = executor.submit(real_set_eyetracking, frame, crop_left, crop_right)
                 # # Future 객체의 결과값(result)를 반환받을 수 있음
@@ -526,14 +522,18 @@ with map_face_mesh.FaceMesh(max_num_faces=1,refine_landmarks=True,min_detection_
                 # # # q 입력 시 종료
                 # if message == 'q':
                 #     client_socket.close()
-                if message is not None:
-                    # 입력한 message 전송
-                    client_socket.sendall(message.encode())
+                if client_socket.closed:
+                    # 지정한 HOST와 PORT 사용하여 서버 접속
+                    client_socket.connect((HOST, PORT))
+                else:
+                    if message is not None:
+                        # 입력한 message 전송
+                        client_socket.sendall(message.encode())
 
-                    # 메시지 수신
-                    data = client_socket.recv(1024)
-                    print('Received', repr(data.decode()))
-                    message = None
+                        # 메시지 수신
+                        data = client_socket.recv(1024)
+                        print('Received', repr(data.decode()))
+                        message = None
 
         if count == 1:
             cv.circle(frame, (240, 350), 30, (0, 0, 255), 2)
