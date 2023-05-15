@@ -488,7 +488,7 @@ def kokakola():
                 #     utils.colorBackgroundText(frame, f'RE_LS: {result[2]}', FONTS, 1.0, (600, 360), 2, color[0], color[1], 8, 8)
                 #     utils.colorBackgroundText(frame, f'RE_RS: {result[3]}', FONTS, 1.0, (600, 480), 2, color[0], color[1], 8, 8)
                 # # -----------------------------------------------------------------------------------------------------------------------------------------------------------------
-                # Get the head pose using FaceMeshssssssssss
+            # Get the head pose using FaceMeshssssssssss
             img_h, img_w, img_c = frame.shape # 이미지 높이, 너비, 채널
             face_3d = [] # 3D 좌표 리스트
             face_2d = [] # 2D 좌표 리스트

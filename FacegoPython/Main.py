@@ -54,7 +54,7 @@ class App:
 
 
 if __name__ == '__main__':
-    # App(tk.Tk(), "Tkinter and OpenCV")
+    App(tk.Tk(), "Tkinter and OpenCV")
     # t1 = threading.Thread(target=facego.test)
     # t1.start()
     # t2 = threading.Thread(target=client.test)
