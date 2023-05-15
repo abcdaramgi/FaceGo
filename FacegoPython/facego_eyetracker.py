@@ -325,6 +325,8 @@ def real_set_eyetracking():
                 # print("result_list4", result_list4)
                 
                 utils.colorBackgroundText(frame, f'Set Finish!', FONTS, 1.0, (350, 150), 2, color[0], color[1], 8, 8)
+                utils.colorBackgroundText(frame, f'', FONTS, 1.0, (350, 150), 2, color[0], color[1], 8, 8)
+                utils.colorBackgroundText(frame, f'', FONTS, 1.0, (350, 150), 2, color[0], color[1], 8, 8)
             
                 set_finish = True #real 어쩌구가 끝나야 초기설정이 끝난거임
                 return 
@@ -547,13 +549,13 @@ with map_face_mesh.FaceMesh(max_num_faces=1,refine_landmarks=True,min_detection_
                     print('Received', repr(data.decode()))
                     message = None
 
-        if count == 1:
-            cv.circle(frame, (240, 350), 30, (0, 0, 255), 2)
-            utils.colorBackgroundText(frame, f'Look Left circle for 3 seconds ', FONTS, 1.0, (350, 150), 2, color[0], color[1], 8, 8)
+        # if count == 1:
+        #     cv.circle(frame, (240, 350), 30, (0, 0, 255), 2)
+        #     utils.colorBackgroundText(frame, f'Look Left circle for 3 seconds ', FONTS, 1.0, (350, 150), 2, color[0], color[1], 8, 8)
             
-        elif count == 2:
-            cv.circle(frame, (680, 350), 30, (0, 0, 255), 2)
-            utils.colorBackgroundText(frame, f'Look Right Circle for 3 seconds', FONTS, 1.0, (350, 150), 2, color[0], color[1], 8, 8)
+        # elif count == 2:
+        #     cv.circle(frame, (680, 350), 30, (0, 0, 255), 2)
+        #     utils.colorBackgroundText(frame, f'Look Right Circle for 3 seconds', FONTS, 1.0, (350, 150), 2, color[0], color[1], 8, 8)
 
         cv.imshow('frame', frame)
         key = cv.waitKey(2)
