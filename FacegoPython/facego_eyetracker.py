@@ -21,6 +21,11 @@ result_list2 = []
 result_list3 = []
 result_list4 = []
 
+frame = None
+crop_left = None
+crop_right = None
+
+
 # 클래스 정의
 class Person:
     def __init__(self, start, middle, finsih):
@@ -263,7 +268,7 @@ def recalibrate(cropped_eye):
 
     return left_part, center_part, right_part
 
-def real_set_eyetracking(frame, crop_left, crop_right):
+def real_set_eyetracking():
     global set_finish
     global count_D
     global count
@@ -271,7 +276,7 @@ def real_set_eyetracking(frame, crop_left, crop_right):
     global result_list2
     global result_list3
     global result_list4
-    
+    global frame, crop_left, crop_right
     
     #if count_D == True:
     if set_finish == False:
@@ -340,8 +345,6 @@ def Countdown():
 
 # 아이트래킹 프로그램 시작
 with map_face_mesh.FaceMesh(max_num_faces=1,refine_landmarks=True,min_detection_confidence=0.5, min_tracking_confidence=0.5) as face_mesh:
-
-
     # # ThreadPoolExecutor 객체 생성
     # executor = ThreadPoolExecutor(max_workers=2)
     while True:
@@ -379,7 +382,7 @@ with map_face_mesh.FaceMesh(max_num_faces=1,refine_landmarks=True,min_detection_
             left_coords = [mesh_coords[p] for p in LEFT_EYE]
             right_iris_coords = [mesh_coords[p] for p in RIGHT_IRIS]
             left_iris_coords = [mesh_coords[p] for p in LEFT_IRIS]
-            crop_right, crop_left = eyesExtractor(frame, right_coords, left_coords,right_iris_coords,left_iris_coords)
+            crop_right, crop_left = eyesExtractor(frame, right_coords, left_coords, right_iris_coords, left_iris_coords)
             
             # cv.imshow('right', crop_right)
             # cv.imshow('left', crop_left)
@@ -422,7 +425,7 @@ with map_face_mesh.FaceMesh(max_num_faces=1,refine_landmarks=True,min_detection_
                 # result = future.result()
                 # future.cancel()
                 # result = threading.Thread(target = real_set_eyetracking(frame, crop_left, crop_right))
-                result_thread = threading.Thread(target=real_set_eyetracking, args=(frame, crop_left, crop_right))
+                result_thread = threading.Thread(target=real_set_eyetracking)
                 result_thread.start()
                 # timer = threading.Thread(target=Countdown)
                 # timer.start()
