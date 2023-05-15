@@ -5,7 +5,7 @@ import time
 import utils, math
 import numpy as np
 import threading
-import queue
+
 import socket
 from concurrent.futures import ThreadPoolExecutor
 
@@ -16,7 +16,20 @@ count_down_count = 0
 count_T = False
 count_D = False
 count = 1
-result_queue = queue.Queue()
+result_list1 = []
+result_list2 = []
+result_list3 = []
+result_list4 = []
+
+# 클래스 정의
+class Person:
+    def __init__(self, start, middle, finsih):
+        self.start = start
+        self.middle = middle
+        self.finish = finsih
+
+
+
 
 text = ""
 text2 = ""
@@ -35,7 +48,6 @@ FONTS = cv.FONT_HERSHEY_COMPLEX
 
 FACE_OVAL = [10, 338, 297, 332, 284, 251, 389, 356, 454, 323, 361, 288, 397, 365, 379, 378, 400, 377, 152, 148, 176,
              149, 150, 136, 172, 58, 132, 93, 234, 127, 162, 21, 54, 103, 67, 109]
-
 
 LIPS = [61, 146, 91, 181, 84, 17, 314, 405, 321, 375, 291, 308, 324, 318, 402, 317, 14, 87, 178, 88, 95, 185, 40, 39,
         37, 0, 267, 269, 270, 409, 415, 310, 311, 312, 13, 82, 81, 42, 183, 78]
@@ -251,43 +263,16 @@ def recalibrate(cropped_eye):
 
     return left_part, center_part, right_part
 
-    count = 0
-    print("real_set_eyetracking run!")
-    
-    cv.circle(frame, (240, 350), 30, (0, 0, 255), 2)
-    utils.colorBackgroundText(frame, f'Look Left circle for 3 seconds ', FONTS, 1.0, (350, 150), 2, color[0], color[1], 8, 8)
-
-    while True:
-    # if countdown_thread.is_countdown_finished:
-        # print("Count Down Finish!")
-        print("CountDown : " ,count)
-        count += 1
-        if count == 1: 
-            
-            lefteye_left_standard = recalibrate(crop_left)
-            righteye_left_standard = recalibrate(crop_right)
-            
-
-        # elif count == 2:
-        if count == 2:
-            cv.circle(frame, (680, 350), 30, (0, 0, 255), 2)
-            utils.colorBackgroundText(frame, f'Look Right Circle for 3 seconds', FONTS, 1.0, (350, 150), 2, color[0], color[1], 8, 8)
-
-            lefteye_right_standard = recalibrate(crop_left)
-            righteye_right_standard = recalibrate(crop_right)
-
-            utils.colorBackgroundText(frame, f'Set Finish!', FONTS, 1.0, (350, 150), 2, color[0], color[1], 8, 8)
-
-            global set_finish
-            set_finish=True #real 어쩌구가 끝나야 초기설정이 끝난거임
-            result_queue.put((lefteye_left_standard, righteye_left_standard, lefteye_right_standard, righteye_right_standard))
-            return
-            # return lefteye_left_standard, righteye_left_standard, lefteye_right_standard, righteye_right_standard
 def real_set_eyetracking(frame, crop_left, crop_right):
     global set_finish
     global count_D
     global count
-    global result_queue
+    global result_list1
+    global result_list2
+    global result_list3
+    global result_list4
+    
+    
     #if count_D == True:
     if set_finish == False:
         # print("real_set_eyetracking run!")
@@ -305,35 +290,50 @@ def real_set_eyetracking(frame, crop_left, crop_right):
                 lefteye_left_standard = recalibrate(crop_left)
                 righteye_left_standard = recalibrate(crop_right)
 
-                result_queue.put((lefteye_left_standard, righteye_left_standard))
+                print("lefteye_left_standard : ", lefteye_left_standard)
+                print("righteye_left_standard : ", righteye_left_standard)
+
+                result_list1 = lefteye_left_standard
+                # print("result_list1", result_list1)
+                result_list2 = righteye_left_standard
+                # print("result_list2", result_list2)
+
+                count+=1
+
             elif count == 2:
                 
                 cv.circle(frame, (680, 350), 30, (0, 0, 255), 2)
                 utils.colorBackgroundText(frame, f'Look Right Circle for 3 seconds', FONTS, 1.0, (350, 150), 2, color[0], color[1], 8, 8)
 
-                timer = threading.Thread(target=Countdown)
-                timer.start()
-                timer.join()
+                timer1 = threading.Thread(target=Countdown)
+                timer1.start()
+                timer1.join()
 
-                lefteye_right_standard = recalibrate(crop_left)
+                lefteye_right_standard = recalibrate(crop_left) 
                 righteye_right_standard = recalibrate(crop_right)
+                print("lefteye_right_standard : ", lefteye_right_standard)
+                print("righteye_right_standard : ", righteye_right_standard)
 
+                result_list3 = lefteye_right_standard
+                # print("result_list3", result_list3)
+                result_list4 = righteye_right_standard
+                # print("result_list4", result_list4)
+                
                 utils.colorBackgroundText(frame, f'Set Finish!', FONTS, 1.0, (350, 150), 2, color[0], color[1], 8, 8)
             
                 set_finish = True #real 어쩌구가 끝나야 초기설정이 끝난거임
-                result_queue.put((lefteye_right_standard, righteye_right_standard))
-                return
+                return 
 
 def Countdown():
     global count_down_count
-    global count
+    # global count
     if count_down_count < 2:
         print("CountDown Run~~~~~~~~~~~~~`")
         time.sleep(2)
         global count_D 
         count_D = True 
         count_down_count += 1
-        count+=1
+        # count+=1
     elif count_down_count == 2:
         return
 
@@ -406,9 +406,13 @@ with map_face_mesh.FaceMesh(max_num_faces=1,refine_landmarks=True,min_detection_
 
 
             if set_finish == True:
-                result = result_queue.get()
-                print(result[0],result[1])
-                set_finish = False
+                
+                print("result_list1 : ", result_list1)
+                print("result_list2 ", result_list2)
+                print("result_list3 : ", result_list3)
+                print("result_list4 ", result_list4)
+                set_finish = False  # set_finish를 다시 False로 설정
+
            
             # # -----------------------------------------------------------------------------------------------------------------------------------------------------------------
         if count_T == False:
