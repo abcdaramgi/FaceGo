@@ -173,6 +173,8 @@ def pixelCounter(first_piece, second_piece, third_piece):
             eyemessage = 'l'
         elif text2 == "Head Right":
             eyemessage = 'r'
+        elif text2 == "Head Down":
+            eyemessage = 's'
         else :
             eyemessage = 's'
         color = [utils.BLACK, utils.GREEN]
@@ -184,6 +186,8 @@ def pixelCounter(first_piece, second_piece, third_piece):
             eyemessage = 'l'
         elif text2 == "Head Right":
             eyemessage = 'r'
+        elif text2 == "Head Down":
+            eyemessage = 's'
         else :
             eyemessage = 'g'
         color = [utils.YELLOW, utils.PINK]
@@ -195,6 +199,8 @@ def pixelCounter(first_piece, second_piece, third_piece):
             eyemessage = 'l'
         elif text2 == "Head Right":
             eyemessage = 'r'
+        elif text2 == "Head Down":
+            eyemessage = 's'
         else :
             eyemessage = 's'
         color = [utils.GRAY, utils.YELLOW]

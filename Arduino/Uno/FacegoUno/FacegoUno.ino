@@ -14,7 +14,7 @@ int SpeedPin_A = 10;
 int Dir1Pin_B = 4;      
 int Dir2Pin_B = 5;      
 int SpeedPin_B = 11; 
-int MaxSpeed = 130;
+int MaxSpeed = 90;
 int MinSpeed = 70;
 
 int basicSpeed = 85;
@@ -28,6 +28,7 @@ bool leftFlag = true;
 bool rightFlag = true;
 
 bool testFlag = true;
+bool startBoost = true;
 
 String head;
 String eye;
@@ -134,6 +135,7 @@ void engineBreak(){
   leftFlag = true;
   rightFlag = true;
   testFlag = true;
+  startBoost = true;
   if(CurrentSpeed != 0){
     CurrentSpeed -= 10;
     if(CurrentSpeed <= 0){
@@ -173,10 +175,15 @@ void goForward(){
 
   Serial.print("직진입니다 : ");
   Serial.print(CurrentSpeed);
+  if(CurrentSpeed > 85 && startBoost){
+    CurrentSpeed -= 20;
+  }
+  else{
+    CurrentSpeed += 1;
+    startBoost = false;
+  }
 
-  CurrentSpeed += 1;
-
-  if(CurrentSpeed > MaxSpeed){
+  if(CurrentSpeed > MaxSpeed && !startBoost){
     CurrentSpeed = MaxSpeed;
     Serial.print("최고속도 도달");
   }
@@ -196,18 +203,19 @@ void goLeft(){
 
   rightFlag = true;
 
-  // RightSpeed += 2;
-  // LeftSpeed -= 1;
-  RightSpeed = 170;
-  LeftSpeed = 60;
+  // RightSpeed += 1;
+  // LeftSpeed -= 10;
+
+  // RightSpeed = 170;
+  // LeftSpeed = 60;
 
   if(LeftSpeed <= 0){
       LeftSpeed = 0;
   }
-  if(RightSpeed > MaxSpeed){
-    RightSpeed = MaxSpeed;
-    Serial.print("좌회전 최고속도 도달");
-  }
+  // if(RightSpeed > MaxSpeed){
+  //   RightSpeed = MaxSpeed;
+  //   Serial.print("좌회전 최고속도 도달");
+  // }
 
   Serial.print("R : ");
   Serial.print(RightSpeed);
@@ -255,20 +263,20 @@ void goRight(){
 
   leftFlag = true;
 
-  // RightSpeed -= 1;
+  // RightSpeed -= 10;
   // LeftSpeed += 1;
 
-  RightSpeed = 60;
-  LeftSpeed = 170;
+  // RightSpeed = 45;
+  // LeftSpeed = 95;
 
 
   if(RightSpeed <= 0){
       RightSpeed = 0;
   }
-  if(LeftSpeed > MaxSpeed){
-    LeftSpeed = MaxSpeed;
-    Serial.print("우회전 최고속도 도달");
-  }
+  // if(LeftSpeed > MaxSpeed){
+  //   LeftSpeed = MaxSpeed;
+  //   Serial.print("우회전 최고속도 도달");
+  // }
 
   Serial.print("R : ");
   Serial.print(RightSpeed);
@@ -314,7 +322,8 @@ void goRight(){
 void initCurrentSpeed(){
   if(goFlag){
     Serial.print("현재속도 초기화하러 왔습니다");
-    CurrentSpeed = basicSpeed;
+    // CurrentSpeed = basicSpeed;
+    CurrentSpeed = 135;
     goFlag = false;
   }
 }
@@ -328,8 +337,10 @@ void initLeftRightSpeed(int control){
     Serial.print("좌회전호출로초기화");
     // RightSpeed = CurrentSpeed;
     // LeftSpeed = CurrentSpeed - 10;
-    RightSpeed = basicSpeed;
-    LeftSpeed = basicSpeed;
+    // RightSpeed = basicSpeed;
+    // LeftSpeed = basicSpeed;
+    RightSpeed = 105;
+    LeftSpeed = 40;
     leftFlag = false;
   }
   //우회전 호출됬을때
@@ -337,8 +348,10 @@ void initLeftRightSpeed(int control){
     Serial.print("우회전호출로초기화");
     // RightSpeed = CurrentSpeed - 10;
     // LeftSpeed = CurrentSpeed;
-    RightSpeed = basicSpeed;
-    LeftSpeed = basicSpeed;
+    // RightSpeed = basicSpeed;
+    // LeftSpeed = basicSpeed;
+    RightSpeed = 30;
+    LeftSpeed = 110;
     rightFlag = false;
   }
   // if(testFlag && control == 2) {
