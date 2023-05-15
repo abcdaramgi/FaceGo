@@ -28,6 +28,7 @@ interval = 0.1
 
 # socket 객체 생성
 client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+is_connected = False
 
 
 FONTS = cv.FONT_HERSHEY_COMPLEX
@@ -522,18 +523,22 @@ with map_face_mesh.FaceMesh(max_num_faces=1,refine_landmarks=True,min_detection_
                 # # # q 입력 시 종료
                 # if message == 'q':
                 #     client_socket.close()
-                if client_socket.closed:
-                    # 지정한 HOST와 PORT 사용하여 서버 접속
-                    client_socket.connect((HOST, PORT))
-                else:
-                    if message is not None:
-                        # 입력한 message 전송
-                        client_socket.sendall(message.encode())
+                if message is not None:
+                    if not is_connected:
+                        try:
+                            client_socket.connect((HOST, PORT))
+                            is_connected = True
+                        except ConnectionRefusedError:  # 연결이 거부됨
+                            time.sleep(1)
+                            continue  # 다시 연결 시도
 
-                        # 메시지 수신
-                        data = client_socket.recv(1024)
-                        print('Received', repr(data.decode()))
-                        message = None
+                    # 입력한 message 전송
+                    client_socket.sendall(message.encode())
+
+                    # 메시지 수신
+                    data = client_socket.recv(1024)
+                    print('Received', repr(data.decode()))
+                    message = None
 
         if count == 1:
             cv.circle(frame, (240, 350), 30, (0, 0, 255), 2)
@@ -545,6 +550,7 @@ with map_face_mesh.FaceMesh(max_num_faces=1,refine_landmarks=True,min_detection_
 
         cv.imshow('frame', frame)
         key = cv.waitKey(2)
+
 
         if key == ord('q') or key == ord('Q'):
             break
