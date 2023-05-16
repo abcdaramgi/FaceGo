@@ -25,16 +25,12 @@ frame = None
 crop_left = None
 crop_right = None
 
-
 # 클래스 정의
 class Person:
     def __init__(self, start, middle, finsih):
         self.start = start
         self.middle = middle
         self.finish = finsih
-
-
-
 
 text = ""
 text2 = ""
@@ -486,8 +482,8 @@ with map_face_mesh.FaceMesh(max_num_faces=1,refine_landmarks=True,min_detection_
                 x = angles[0] * 360
                 y = angles[1] * 360
 
-                printx = x;
-                printy = y;
+                printx = x
+                printy = y
 
                 # print(y)
 

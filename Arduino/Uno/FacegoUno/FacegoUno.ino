@@ -14,7 +14,7 @@ int SpeedPin_A = 10;
 int Dir1Pin_B = 4;      
 int Dir2Pin_B = 5;      
 int SpeedPin_B = 11; 
-int MaxSpeed = 90;
+int MaxSpeed = 95;
 int MinSpeed = 70;
 
 int basicSpeed = 85;
@@ -175,18 +175,18 @@ void goForward(){
 
   Serial.print("직진입니다 : ");
   Serial.print(CurrentSpeed);
-  if(CurrentSpeed > 85 && startBoost){
-    CurrentSpeed -= 20;
-  }
-  else{
-    CurrentSpeed += 1;
-    startBoost = false;
-  }
+  // if(CurrentSpeed > 95 && startBoost){
+  //   CurrentSpeed -= 20;
+  // }
+  // else{
+  //   CurrentSpeed += 1;
+  //   startBoost = false;
+  // }
 
-  if(CurrentSpeed > MaxSpeed && !startBoost){
-    CurrentSpeed = MaxSpeed;
-    Serial.print("최고속도 도달");
-  }
+  // if(CurrentSpeed > MaxSpeed && !startBoost){
+  //   CurrentSpeed = MaxSpeed;
+  //   Serial.print("최고속도 도달");
+  // }
 
   digitalWrite(Dir1Pin_A, HIGH);         
   digitalWrite(Dir2Pin_A, LOW);
@@ -323,7 +323,8 @@ void initCurrentSpeed(){
   if(goFlag){
     Serial.print("현재속도 초기화하러 왔습니다");
     // CurrentSpeed = basicSpeed;
-    CurrentSpeed = 135;
+    // CurrentSpeed = 155;
+    CurrentSpeed = 95;
     goFlag = false;
   }
 }
@@ -339,8 +340,8 @@ void initLeftRightSpeed(int control){
     // LeftSpeed = CurrentSpeed - 10;
     // RightSpeed = basicSpeed;
     // LeftSpeed = basicSpeed;
-    RightSpeed = 105;
-    LeftSpeed = 40;
+    RightSpeed = 130;
+    LeftSpeed = 35;
     leftFlag = false;
   }
   //우회전 호출됬을때
@@ -350,8 +351,8 @@ void initLeftRightSpeed(int control){
     // LeftSpeed = CurrentSpeed;
     // RightSpeed = basicSpeed;
     // LeftSpeed = basicSpeed;
-    RightSpeed = 30;
-    LeftSpeed = 110;
+    RightSpeed = 35;
+    LeftSpeed = 130;
     rightFlag = false;
   }
   // if(testFlag && control == 2) {
