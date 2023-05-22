@@ -75,7 +75,7 @@ void loop() {
       goForward();
       Serial.println("직진"); 
     }
-    else if(command == "b CENTER"){               
+    else if(command == 'b'){               
       goBack();
       Serial.println("후진"); 
     }
@@ -101,11 +101,11 @@ void loop() {
 void goBack() {
   digitalWrite(Dir1Pin_A, LOW);          
   digitalWrite(Dir2Pin_A, HIGH);  
-  analogWrite(SpeedPin_A, 250);      
+  analogWrite(SpeedPin_A, 95);      
 
   digitalWrite(Dir1Pin_B, LOW);          
   digitalWrite(Dir2Pin_B, HIGH);
-  analogWrite(SpeedPin_B, 250);
+  analogWrite(SpeedPin_B, 95);
 }
 
 //정지
@@ -114,7 +114,7 @@ void engineBreak(){
   rightFlag = true;
   goFlag = true;
   if(CurrentSpeed != 0){
-    CurrentSpeed -= 10;
+    CurrentSpeed -= 20;
     if(CurrentSpeed <= 0){
       CurrentSpeed = 0;
       Serial.print("완전정지상태");
@@ -236,12 +236,12 @@ void initCurrentSpeed(){
   if(goFlag){
     Serial.print("현재속도 초기화하러 왔습니다");
     // CurrentSpeed = basicSpeed;
-    CurrentSpeed = 255;
+    CurrentSpeed = 155;
     // CurrentSpeed = 95;
     goFlag = false;
   }
   else{
-    CurrentSpeed = 95;
+    CurrentSpeed = 85;
   }
 }
 
@@ -256,7 +256,7 @@ void initLeftRightSpeed(int control){
     // LeftSpeed = CurrentSpeed - 10;
     // RightSpeed = basicSpeed;
     // LeftSpeed = basicSpeed;
-    RightSpeed = 130;
+    RightSpeed = 140;
     LeftSpeed = 35;
     leftFlag = false;
   }
@@ -268,7 +268,7 @@ void initLeftRightSpeed(int control){
     // RightSpeed = basicSpeed;
     // LeftSpeed = basicSpeed;
     RightSpeed = 35;
-    LeftSpeed = 130;
+    LeftSpeed = 140;
     rightFlag = false;
   }
   // if(testFlag && control == 2) {
