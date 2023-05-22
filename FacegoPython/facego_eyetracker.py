@@ -12,6 +12,7 @@ from concurrent.futures import ThreadPoolExecutor
 eye_set_complete = False
 set_finish = False
 count_down_count = 0
+color = None
 
 count_T = False
 count_D = False
@@ -20,6 +21,10 @@ result_list1 = []
 result_list2 = []
 result_list3 = []
 result_list4 = []
+real_eye_pos = ''
+
+ls_current_l_pixel = []
+ls_current_r_pixel = []
 
 frame = None
 crop_left = None
@@ -127,7 +132,7 @@ def eyesExtractor(img, right_eye_coords, left_eye_coords,right_iris_coords,left_
 def positionEstimator(cropped_eye):
     h, w = cropped_eye.shape
 
-    cv.imshow("crop eye",cropped_eye)
+    # cv.imshow("crop eye",cropped_eye)
     # 눈 이미지에 가우시안 필터 적용
     gaussain_blur = cv.GaussianBlur(cropped_eye, (5, 5), 0)
 
@@ -178,6 +183,7 @@ def pixelCounter(first_piece, second_piece, third_piece):
     # 픽셀 값이 가장 많은 영역의 인덱스를 구함
     max_index = eye_parts.index(max(eye_parts))
     pos_eye = ''
+    global color
     # #########
     # 인덱스에 따라 눈동자 위치를 반환
     if max_index == 0:
@@ -214,7 +220,7 @@ def pixelCounter(first_piece, second_piece, third_piece):
         pos_eye = "Closed"
         # pos_eye = "RIGHT"
         eyemessage = pos_eye
-        if text2 == "Head Left":
+        if text2 == "Head Left": 
             eyemessage = 'l'
         elif text2 == "Head Right":
             eyemessage = 'r'
@@ -262,7 +268,7 @@ def recalibrate(cropped_eye):
     center_part = np.sum(center_piece == 0)
     left_part = np.sum(left_piece == 0)
 
-    return left_part, center_part, right_part
+    return right_part, center_part, left_part
 
 def real_set_eyetracking():
     global set_finish
@@ -276,35 +282,32 @@ def real_set_eyetracking():
     
     #if count_D == True:
     if set_finish == False:
-        # print("real_set_eyetracking run!")
 
         while True:
             
-            # print("count : ", count)
             if count == 1:  
                 cv.circle(frame, (240, 350), 30, (0, 0, 255), 2)
-                utils.colorBackgroundText(frame, f'Look Left circle for 3 seconds ', FONTS, 1.0, (350, 150), 2, color[0], color[1], 8, 8)
+                # utils.colorBackgroundText(frame, f'Look Left circle for 3 seconds ', FONTS, 1.0, (350, 150), 2, color[0], color[1], 8, 8)
                 timer = threading.Thread(target=Countdown)
                 timer.start()
                 timer.join()
 
                 lefteye_left_standard = recalibrate(crop_left)
                 righteye_left_standard = recalibrate(crop_right)
+                print("-----------------------------------------------------")
+                print("righteye_left_standard : ", lefteye_left_standard)
+                print("lefteye_left_standard : ", righteye_left_standard)
 
-                print("lefteye_left_standard : ", lefteye_left_standard)
-                print("righteye_left_standard : ", righteye_left_standard)
+                result_list1 = righteye_left_standard #그대로 왼눈왼볼
+                result_list2 = lefteye_left_standard #그대로 오눈왼볼
 
-                result_list1 = lefteye_left_standard
-                # print("result_list1", result_list1)
-                result_list2 = righteye_left_standard
-                # print("result_list2", result_list2)
 
                 count+=1
 
             elif count == 2:
                 
                 cv.circle(frame, (680, 350), 30, (0, 0, 255), 2)
-                utils.colorBackgroundText(frame, f'Look Right Circle for 3 seconds', FONTS, 1.0, (350, 150), 2, color[0], color[1], 8, 8)
+                # utils.colorBackgroundText(frame, f'Look Right Circle for 3 seconds', FONTS, 1.0, (350, 150), 2, color[0], color[1], 8, 8)
 
                 timer1 = threading.Thread(target=Countdown)
                 timer1.start()
@@ -312,18 +315,17 @@ def real_set_eyetracking():
 
                 lefteye_right_standard = recalibrate(crop_left) 
                 righteye_right_standard = recalibrate(crop_right)
-                print("lefteye_right_standard : ", lefteye_right_standard)
-                print("righteye_right_standard : ", righteye_right_standard)
+                print("righteye_right_standard : ", lefteye_right_standard) 
+                print("lefteye_right_standard : ", righteye_right_standard)
 
-                result_list3 = lefteye_right_standard
-                # print("result_list3", result_list3)
-                result_list4 = righteye_right_standard
-                # print("result_list4", result_list4)
-                
+                result_list3 = lefteye_right_standard #이게 왼눈오볼
+                result_list4 = righteye_right_standard # 오눈오볼
+                print("-----------------------------------------------------")
+
                 utils.colorBackgroundText(frame, f'Set Finish!', FONTS, 1.0, (350, 150), 2, color[0], color[1], 8, 8)
                 utils.colorBackgroundText(frame, f'', FONTS, 1.0, (350, 150), 2, color[0], color[1], 8, 8)
-                utils.colorBackgroundText(frame, f'', FONTS, 1.0, (350, 150), 2, color[0], color[1], 8, 8)
-            
+
+                count+=1
                 set_finish = True #real 어쩌구가 끝나야 초기설정이 끝난거임
                 return 
 
@@ -331,8 +333,7 @@ def Countdown():
     global count_down_count
     # global count
     if count_down_count < 2:
-        print("CountDown Run~~~~~~~~~~~~~`")
-        time.sleep(2)
+        time.sleep(3)
         global count_D 
         count_D = True 
         count_down_count += 1
@@ -381,57 +382,54 @@ with map_face_mesh.FaceMesh(max_num_faces=1,refine_landmarks=True,min_detection_
             right_iris_coords = [mesh_coords[p] for p in RIGHT_IRIS]
             left_iris_coords = [mesh_coords[p] for p in LEFT_IRIS]
             crop_right, crop_left = eyesExtractor(frame, right_coords, left_coords, right_iris_coords, left_iris_coords)
-            
-            # cv.imshow('right', crop_right)
-            # cv.imshow('left', crop_left)
-            # print("dsadasdasdasdas")
-            eye_position_right, color, eyemessage = positionEstimator(crop_right)
+
+            eye_position_right, color, eyemessage = positionEstimator(crop_right) 
             utils.colorBackgroundText(frame, f'R: {eye_position_right}', FONTS, 1.0, (40, 220), 2, color[0], color[1], 8, 8)
 
             # 프레임에 눈의 위치와 색상을 나타내는 텍스트 추가
-            eye_position_left, color, eyemessage = positionEstimator(crop_left)
+            eye_position_left, color, eyemessage = positionEstimator(crop_left) 
             utils.colorBackgroundText(frame, f'L: {eye_position_left}', FONTS, 1.0, (40, 320), 2, color[0], color[1], 8, 8)
-            
-            # if set_finish == False:
-            #     eyetracking_standard = real_set_eyetracking(frame, crop_left, crop_right)
-            #     set_finish = True
-
-            # elif set_finish == True:
 
             current_l_pixel = recalibrate(crop_left)
             current_r_pixel = recalibrate(crop_right)
+            
+            
+            ls_current_l_pixel = current_l_pixel
+            ls_current_r_pixel = current_r_pixel
+            
+            if set_finish is True:
+                # 왼쪽눈 왼쪽 기준 보는 픽셀 값이 > 왼쪽눈 왼쪽 기준점을 봤을 때의 픽셀 값, 
+                if ls_current_r_pixel[0] >= int(str(result_list1[0])) - 3 or int(ls_current_l_pixel[0]) >= int(str(result_list2[0])) - 3:
+                    print(" 현재 왼눈 픽셀 값 ", ls_current_l_pixel,"현재오눈 :",ls_current_r_pixel,"오눈왼볼 : ", result_list1, "왼눈왼볼", result_list2)
+                    real_eye_pos = 'LEFT'
+                    print(real_eye_pos)
+                elif ls_current_r_pixel[2] >= result_list1[2] - 3 or ls_current_l_pixel[2] >= result_list2[2] - 3:
+                    real_eye_pos = 'RIGHT'
+                    print(" 현재 왼눈: ", ls_current_l_pixel,"현재 오눈", ls_current_r_pixel, "오눈오볼 : ", result_list3, "왼눈오볼 : ",result_list4) 
+                    print(real_eye_pos)
+                else:
+                    real_eye_pos = 'Center'
+                    print(ls_current_l_pixel[1], result_list1[1], result_list2[1])
+                    print(real_eye_pos)
+                
             utils.colorBackgroundText(frame, f'L: {current_l_pixel}', FONTS, 1.0, (350, 50), 2, color[0], color[1], 8, 8)
             utils.colorBackgroundText(frame, f'R: {current_r_pixel}', FONTS, 1.0, (600, 50), 2, color[0], color[1], 8, 8)
-
-
-
-            # # 이 코드는 나제 존자이 스루노카
+            print(current_l_pixel, current_r_pixel)
+            # # # 이 코드는 나제 존자이 스루노카
             # if set_finish == True:
-            #     print("result_list1 : ", result_list1)
-            #     print("result_list2 ", result_list2)
-            #     print("result_list3 : ", result_list3)
-            #     print("result_list4 ", result_list4)
+            #     print("result_list1 : ", result_list1) # result1 오눈왼볼
+            #     print("result_list2 ", result_list2) # result2 왼눈왼볼
+            #     print("result_list3 : ", result_list3) # result3 오눈오볼
+            #     print("result_list4 ", result_list4) # result4 왼눈오볼
             #     set_finish = False  # set_finish를 다시 False로 설정
-
-           
-            # # -----------------------------------------------------------------------------------------------------------------------------------------------------------------
+            # # # -----------------------------------------------------------------------------------------------------------------------------------------------------------------
         if count_T == False:
-                # submit() 메서드로 Future 객체를 반환받음
-                # future = executor.submit(real_set_eyetracking, frame, crop_left, crop_right)
-                # # Future 객체의 결과값(result)를 반환받을 수 있음
-                # result = future.result()
-                # future.cancel()
-                # result = threading.Thread(target = real_set_eyetracking(frame, crop_left, crop_right))
+               
                 result_thread = threading.Thread(target=real_set_eyetracking)
                 result_thread.start()
-                # timer = threading.Thread(target=Countdown)
-                # timer.start()
 
                 count_T = True
 
-                # result = result_thread.result()
-                # threading.Thread(target=Countdown, args=())
-                # result_thread.join()  # 쓰레드 종료 대기
         # print("------------------------------------------------------")
 
         # Get the head pose using FaceMeshssssssssss
@@ -487,23 +485,23 @@ with map_face_mesh.FaceMesh(max_num_faces=1,refine_landmarks=True,min_detection_
 
                 # print(y)
 
-                # 머리 기울기 확인
-                if y < -5:
-                    text2 = "Head Left"
-                    print(text2)
-                    headmessage = 'l'
-                elif y > 5:
-                    text2 = "Head Right"
-                    print(text2)
-                    headmessage = 'r'
-                elif x < -2:
-                    text2 = "Head Down"
-                    print(text2)
-                    headmessage = 's'
-                else:
-                    text2 = "Head Forward"
-                    print(text2)
-                    headmessage = 'g'
+                # # 머리 기울기 확인
+                # if y < -5:
+                #     text2 = "Head Left"
+                #     print(text2)
+                #     headmessage = 'l'
+                # elif y > 5:
+                #     text2 = "Head Right"
+                #     print(text2)
+                #     headmessage = 'r'
+                # elif x < -2:
+                #     text2 = "Head Down"
+                #     print(text2)
+                #     headmessage = 's'
+                # else:
+                #     text2 = "Head Forward"
+                #     print(text2)
+                #     headmessage = 'g'
 
                 # 코 방향 표시
                 nose_3d_projection, jacobian = cv2.projectPoints(nose_3d, rot_vec, trans_vec, cam_matrix,
@@ -521,36 +519,43 @@ with map_face_mesh.FaceMesh(max_num_faces=1,refine_landmarks=True,min_detection_
                 # cv2.putText(printx, printy, (20, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
 
                 # message = say_hello() # 함수 호출하여 결과를 변수에 저장
-                message = eyemessage
-                print(message)  # 결과 출력(확인용)
-                time.sleep(interval)  # 일정 시간 동안 대기
-                # # # q 입력 시 종료
-                # if message == 'q':
-                #     client_socket.close()
-        if set_finish is True:
-            if is_connected is False:
-                try:
-                    client_socket.connect((HOST, PORT))
-                    is_connected = True
-                except ConnectionRefusedError:  # 연결이 거부됨
-                    time.sleep(1)
-                    continue  # 다시 연결 시도
-            else:
-                if message is not None:
-                    # 입력한 message 전송
-                    client_socket.sendall(message.encode())
-                    # 메시지 수신
-                    data = client_socket.recv(1024)
-                    print('Received', repr(data.decode()))
-                    message = None
+                # message = eyemessage
+                # print(message)  # 결과 출력(확인용)
+                # time.sleep(interval)  # 일정 시간 동안 대기
 
-        # if count == 1:
-        #     cv.circle(frame, (240, 350), 30, (0, 0, 255), 2)
-        #     utils.colorBackgroundText(frame, f'Look Left circle for 3 seconds ', FONTS, 1.0, (350, 150), 2, color[0], color[1], 8, 8)
+        # 서버로 연결하겠다 if 연결이 안되있다면~ 연결이 되있다면 메세지를 보내겠다~
+        # if set_finish is True:
+        #     if is_connected is False:
+        #         try:
+        #             client_socket.connect((HOST, PORT))
+        #             is_connected = True
+        #         except ConnectionRefusedError:  # 연결이 거부됨
+        #             time.sleep(1)
+        #             continue  # 다시 연결 시도
+        #     else:
+        #         if message is not None:
+        #             # 입력한 message 전송
+        #             client_socket.sendall(message.encode())
+        #             # 메시지 수신
+        #             data = client_socket.recv(1024)
+        #             print('Received', repr(data.decode()))
+        #             message = None
+           
+        if count == 1:
+            cv.circle(frame, (240, 350), 30, (0, 0, 255), 2)
+            # utils.colorBackgroundText(frame, f'Look Left circle for 3 seconds ', FONTS, 1.0, (350, 150), 2, color[0], color[1], 8, 8)
             
-        # elif count == 2:
-        #     cv.circle(frame, (680, 350), 30, (0, 0, 255), 2)
-        #     utils.colorBackgroundText(frame, f'Look Right Circle for 3 seconds', FONTS, 1.0, (350, 150), 2, color[0], color[1], 8, 8)
+        elif count == 2:
+            cv.circle(frame, (680, 350), 30, (0, 0, 255), 2)
+            # utils.colorBackgroundText(frame, f'Look Right Circle for 3 seconds', FONTS, 1.0, (350, 150), 2, color[0], color[1], 8, 8)
+
+        elif count ==3:
+            # utils.colorBackgroundText(frame, f'Set Finsih!', FONTS, 1.0, (350, 150), 2, color[0], color[1], 8, 8)
+            count +=1
+        
+        else:
+            utils.colorBackgroundText(frame, f'', FONTS, 1.0, (0, 0), 2, color[0], color[1], 8, 8)
+
 
         cv.imshow('frame', frame)
         key = cv.waitKey(2)
