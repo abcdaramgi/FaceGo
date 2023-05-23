@@ -146,6 +146,7 @@ def positionEstimator(cropped_eye):
     # cv.THRESH_OTSU는 임계값을 자동으로 결정
 
 
+
     # print("best threshold",_t)
     #kernel2 = cv.getStructuringElement(cv.MORPH_ELLIPSE, (3, 3))
     #eye_erode_bin = cv.erode(threshed_eye, kernel2, iterations=2)
@@ -179,7 +180,7 @@ def pixelCounter(first_piece, second_piece, third_piece):
     right_part = np.sum(third_piece == 0)
 
     eye_parts = [left_part, center_part, right_part]
-    
+
     # 픽셀 값이 가장 많은 영역의 인덱스를 구함
     max_index = eye_parts.index(max(eye_parts))
     pos_eye = ''
@@ -235,7 +236,7 @@ def pixelCounter(first_piece, second_piece, third_piece):
 def recalibrate(cropped_eye):
     h, w = cropped_eye.shape
 
-    # //cv.imshow("crop eye",cropped_eye)
+    # cv.imshow("crop eye",cropped_eye)
     # 눈 이미지에 가우시안 필터 적용
     #(3,3) : 가우시안 블러 커널의 크기, 세로방향3개 가로방향 3개의 픽셀을참조하여 블러링, 클수록 블러링 효과가 강해짐(이미지의 세부 정도도 손실)
     #세 번째 인자인 0 : 가우시안 필터 함수의 x축과 y축의 표준편차(sigma)를 자동으로 계산
@@ -292,8 +293,8 @@ def real_set_eyetracking():
                 timer.start()
                 timer.join()
 
-                lefteye_left_standard = recalibrate(crop_left)
-                righteye_left_standard = recalibrate(crop_right)
+                lefteye_left_standard = recalibrate(crop_right) # 원래 crop_left
+                righteye_left_standard = recalibrate(crop_left) #원래 crop_right
                 print("-----------------------------------------------------")
                 print("righteye_left_standard : ", lefteye_left_standard)
                 print("lefteye_left_standard : ", righteye_left_standard)
@@ -313,8 +314,8 @@ def real_set_eyetracking():
                 timer1.start()
                 timer1.join()
 
-                lefteye_right_standard = recalibrate(crop_left) 
-                righteye_right_standard = recalibrate(crop_right)
+                lefteye_right_standard = recalibrate(crop_right) #원래 crop_left
+                righteye_right_standard = recalibrate(crop_left) #원래는 crop_right
                 print("righteye_right_standard : ", lefteye_right_standard) 
                 print("lefteye_right_standard : ", righteye_right_standard)
 
@@ -383,38 +384,45 @@ with map_face_mesh.FaceMesh(max_num_faces=1,refine_landmarks=True,min_detection_
             left_iris_coords = [mesh_coords[p] for p in LEFT_IRIS]
             crop_right, crop_left = eyesExtractor(frame, right_coords, left_coords, right_iris_coords, left_iris_coords)
 
-            eye_position_right, color, eyemessage = positionEstimator(crop_right) 
+            eye_position_right, color, eyemessage = positionEstimator(crop_right) # 원래는 crop_right
             utils.colorBackgroundText(frame, f'R: {eye_position_right}', FONTS, 1.0, (40, 220), 2, color[0], color[1], 8, 8)
 
             # 프레임에 눈의 위치와 색상을 나타내는 텍스트 추가
-            eye_position_left, color, eyemessage = positionEstimator(crop_left) 
+            eye_position_left, color, eyemessage = positionEstimator(crop_left) #원래는 crop_left
             utils.colorBackgroundText(frame, f'L: {eye_position_left}', FONTS, 1.0, (40, 320), 2, color[0], color[1], 8, 8)
 
-            current_l_pixel = recalibrate(crop_left)
-            current_r_pixel = recalibrate(crop_right)
+            current_l_pixel = recalibrate(crop_left) #crop_left 원래는 이거임
+            current_r_pixel = recalibrate(crop_right) #crop_right 원래는 이거임
             
             
             ls_current_l_pixel = current_l_pixel
             ls_current_r_pixel = current_r_pixel
-            
+
+            print("\n현재 왼쪽 : ", current_r_pixel,"현재 오른쪽 : ", current_l_pixel,)
+            print("\n")
+            #왼눈왼볼 오눈왼볼 왼눈오볼 오눈오볼
             if set_finish is True:
-                # 왼쪽눈 왼쪽 기준 보는 픽셀 값이 > 왼쪽눈 왼쪽 기준점을 봤을 때의 픽셀 값, 
-                if ls_current_r_pixel[0] >= int(str(result_list1[0])) - 3 or int(ls_current_l_pixel[0]) >= int(str(result_list2[0])) - 3:
-                    print(" 현재 왼눈 픽셀 값 ", ls_current_l_pixel,"현재오눈 :",ls_current_r_pixel,"오눈왼볼 : ", result_list1, "왼눈왼볼", result_list2)
+                
+                          #오눈 왼쪽 픽셀 값 > 오눈외볼 값 +5 보다 크면                          #왼눈 왼쪽 픽셀 값 > 왼눈외볼 값 +5보다 크면
+                if ls_current_r_pixel[0] >= int(str(result_list1[0])) + 5 or int(ls_current_l_pixel[0]) >= int(str(result_list2[0])) + 5:
                     real_eye_pos = 'LEFT'
                     print(real_eye_pos)
-                elif ls_current_r_pixel[2] >= result_list1[2] - 3 or ls_current_l_pixel[2] >= result_list2[2] - 3:
+                    print("리스트 현재왼눈 :",ls_current_r_pixel," 리스트 현재 오른눈 : ", ls_current_l_pixel, "왼눈왼볼", result_list2, "오눈왼볼 : ", result_list1)
+                    
+                    #오눈 오른쪽 픽셀 값 > 오눈오볼 값+5 보다 크면               #왼눈 오른족 픽셀 값 > 왼눈오볼 +2 이면 
+                elif ls_current_r_pixel[2] >= result_list1[2] +5 or ls_current_l_pixel[2] >= result_list2[2] + 2:
                     real_eye_pos = 'RIGHT'
-                    print(" 현재 왼눈: ", ls_current_l_pixel,"현재 오눈", ls_current_r_pixel, "오눈오볼 : ", result_list3, "왼눈오볼 : ",result_list4) 
+                    print("리스트 현재 왼눈", ls_current_r_pixel," 리스트 현재 오른눈: ", ls_current_l_pixel, "왼눈오볼 : ",result_list4,"오눈오볼 : ", result_list3) 
                     print(real_eye_pos)
                 else:
                     real_eye_pos = 'Center'
-                    print(ls_current_l_pixel[1], result_list1[1], result_list2[1])
                     print(real_eye_pos)
                 
-            utils.colorBackgroundText(frame, f'L: {current_l_pixel}', FONTS, 1.0, (350, 50), 2, color[0], color[1], 8, 8)
-            utils.colorBackgroundText(frame, f'R: {current_r_pixel}', FONTS, 1.0, (600, 50), 2, color[0], color[1], 8, 8)
-            print(current_l_pixel, current_r_pixel)
+            utils.colorBackgroundText(frame, f'R: {current_l_pixel}', FONTS, 1.0, (600, 50), 2, color[0], color[1], 8, 8) #원래는 R
+            utils.colorBackgroundText(frame, f'L: {current_r_pixel}', FONTS, 1.0, (350, 50), 2, color[0], color[1], 8, 8) #원래는 L
+
+
+
             # # # 이 코드는 나제 존자이 스루노카
             # if set_finish == True:
             #     print("result_list1 : ", result_list1) # result1 오눈왼볼
