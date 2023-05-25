@@ -27,6 +27,11 @@ bool leftFlag = true;
 bool rightFlag = true;
 
 
+//초음파
+int trigPin = 13;
+int echoPin = 12;
+
+
 String head;
 String eye;
 //================================================================//
@@ -44,12 +49,17 @@ void setup() {
   pinMode(Dir1Pin_B, OUTPUT);             // 제어 1번핀 출력모드 설정
   pinMode(Dir2Pin_B, OUTPUT);             // 제어 2번핀 출력모드 설정
   pinMode(SpeedPin_B, OUTPUT);            // PWM제어핀 출력모드 설정
+  // 시리얼 속도 설정
+  
+  pinMode(echoPin, INPUT);                            // echoPin 입력
+  pinMode(trigPin, OUTPUT);    
 
   Serial.begin(9600);
   Serial.println("Start");
 }
  
 void loop() {
+  long duration, distance;
  if (Serial.available() > 0){                  
     char command = Serial.read();
 
@@ -95,7 +105,23 @@ void loop() {
       Serial.println("Wrong command");      
     }
   } 
-  
+  digitalWrite(trigPin, HIGH);                        // trigPin에서 초음파 발생(echoPin도 HIGH)
+  delayMicroseconds(10);
+  digitalWrite(trigPin, LOW);
+  duration = pulseIn(echoPin, HIGH);                  // echoPin 이 HIGH를 유지한 시간을 저장 한다.
+  distance = ((float)(340 * duration) / 10000) / 2; 
+  Serial.print("distance:");                          // 물체와 초음파 센서간 거리를 표시
+  Serial.print(distance);
+  Serial.println(" cm");
+  if(distance <= 15){
+    digitalWrite(Dir1Pin_A, LOW);          
+    digitalWrite(Dir2Pin_A, LOW);      
+
+    digitalWrite(Dir1Pin_B, LOW);          
+    digitalWrite(Dir2Pin_B, LOW);
+  }
+  delay(100);
+
 }
 //후진
 void goBack() {
