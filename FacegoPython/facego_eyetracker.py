@@ -295,9 +295,9 @@ def real_set_eyetracking():
 
                 lefteye_left_standard = recalibrate(crop_right) # 원래 crop_left
                 righteye_left_standard = recalibrate(crop_left) #원래 crop_right
-                print("-----------------------------------------------------")
-                print("righteye_left_standard : ", lefteye_left_standard)
-                print("lefteye_left_standard : ", righteye_left_standard)
+                # print("-----------------------------------------------------")
+                # print("righteye_left_standard : ", lefteye_left_standard)
+                # print("lefteye_left_standard : ", righteye_left_standard)
 
                 result_list1 = righteye_left_standard #그대로 왼눈왼볼
                 result_list2 = lefteye_left_standard #그대로 오눈왼볼
@@ -316,12 +316,12 @@ def real_set_eyetracking():
 
                 lefteye_right_standard = recalibrate(crop_right) #원래 crop_left
                 righteye_right_standard = recalibrate(crop_left) #원래는 crop_right
-                print("righteye_right_standard : ", lefteye_right_standard) 
-                print("lefteye_right_standard : ", righteye_right_standard)
+                # print("righteye_right_standard : ", lefteye_right_standard) 
+                # print("lefteye_right_standard : ", righteye_right_standard)
 
                 result_list3 = lefteye_right_standard #이게 왼눈오볼
                 result_list4 = righteye_right_standard # 오눈오볼
-                print("-----------------------------------------------------")
+                # print("-----------------------------------------------------")/
 
                 utils.colorBackgroundText(frame, f'Set Finish!', FONTS, 1.0, (350, 150), 2, color[0], color[1], 8, 8)
                 utils.colorBackgroundText(frame, f'', FONTS, 1.0, (350, 150), 2, color[0], color[1], 8, 8)
@@ -397,6 +397,7 @@ with map_face_mesh.FaceMesh(max_num_faces=1,refine_landmarks=True,min_detection_
             
             ls_current_l_pixel = current_l_pixel
             ls_current_r_pixel = current_r_pixel
+            real_eye_message = ''
 
             print("\n현재 왼쪽 : ", current_r_pixel,"현재 오른쪽 : ", current_l_pixel,)
             print("\n")
@@ -406,39 +407,30 @@ with map_face_mesh.FaceMesh(max_num_faces=1,refine_landmarks=True,min_detection_
                           #오눈 왼쪽 픽셀 값 > 오눈외볼 값 +5 보다 크면                          #왼눈 왼쪽 픽셀 값 > 왼눈외볼 값 +5보다 크면
                 if ls_current_r_pixel[0] >= int(str(result_list1[0])) + 5 or int(ls_current_l_pixel[0]) >= int(str(result_list2[0])) + 5:
                     real_eye_pos = 'LEFT'
+                    real_eye_message = 'l'
                     print(real_eye_pos)
                     print("리스트 현재왼눈 :",ls_current_r_pixel," 리스트 현재 오른눈 : ", ls_current_l_pixel, "왼눈왼볼", result_list2, "오눈왼볼 : ", result_list1)
                     
                     #오눈 오른쪽 픽셀 값 > 오눈오볼 값+5 보다 크면               #왼눈 오른족 픽셀 값 > 왼눈오볼 +2 이면 
-                elif ls_current_r_pixel[2] >= result_list1[2] +5 or ls_current_l_pixel[2] >= result_list2[2] + 2:
+                elif ls_current_r_pixel[2] >= result_list1[2] +5 or ls_current_l_pixel[2] >= result_list2[2]+1:
                     real_eye_pos = 'RIGHT'
+                    real_eye_message = 'r'
                     print("리스트 현재 왼눈", ls_current_r_pixel," 리스트 현재 오른눈: ", ls_current_l_pixel, "왼눈오볼 : ",result_list4,"오눈오볼 : ", result_list3) 
                     print(real_eye_pos)
                 else:
                     real_eye_pos = 'Center'
+                    real_eye_message = 'g'
                     print(real_eye_pos)
                 
             utils.colorBackgroundText(frame, f'R: {current_l_pixel}', FONTS, 1.0, (600, 50), 2, color[0], color[1], 8, 8) #원래는 R
             utils.colorBackgroundText(frame, f'L: {current_r_pixel}', FONTS, 1.0, (350, 50), 2, color[0], color[1], 8, 8) #원래는 L
 
-
-
-            # # # 이 코드는 나제 존자이 스루노카
-            # if set_finish == True:
-            #     print("result_list1 : ", result_list1) # result1 오눈왼볼
-            #     print("result_list2 ", result_list2) # result2 왼눈왼볼
-            #     print("result_list3 : ", result_list3) # result3 오눈오볼
-            #     print("result_list4 ", result_list4) # result4 왼눈오볼
-            #     set_finish = False  # set_finish를 다시 False로 설정
-            # # # -----------------------------------------------------------------------------------------------------------------------------------------------------------------
         if count_T == False:
                
                 result_thread = threading.Thread(target=real_set_eyetracking)
                 result_thread.start()
 
                 count_T = True
-
-        # print("------------------------------------------------------")
 
         # Get the head pose using FaceMeshssssssssss
         img_h, img_w, img_c = frame.shape  # 이미지 높이, 너비, 채널
@@ -493,27 +485,26 @@ with map_face_mesh.FaceMesh(max_num_faces=1,refine_landmarks=True,min_detection_
 
                 # print(y)
 
-                # # 머리 기울기 확인
-                # if y < -5:
-                #     text2 = "Head Left"
-                #     print(text2)
-                #     headmessage = 'l'
-                # elif y > 5:
-                #     text2 = "Head Right"
-                #     print(text2)
-                #     headmessage = 'r'
-                # elif x < -2:
-                #     text2 = "Head Down"
-                #     print(text2)
-                #     headmessage = 's'
-                # else:
-                #     text2 = "Head Forward"
-                #     print(text2)
-                #     headmessage = 'g'
+                # 머리 기울기 확인
+                if y < -5:
+                    text2 = "Head Left"
+                    print(text2)
+                    headmessage = 'l'
+                elif y > 5:
+                    text2 = "Head Right"
+                    print(text2)
+                    headmessage = 'r'
+                elif x < -2:
+                    text2 = "Head Down"
+                    print(text2)
+                    headmessage = 's'
+                else:
+                    text2 = "Head Forward"
+                    print(text2)
+                    headmessage = 'g'
 
                 # 코 방향 표시
-                nose_3d_projection, jacobian = cv2.projectPoints(nose_3d, rot_vec, trans_vec, cam_matrix,
-                                                                 dist_matrix)
+                nose_3d_projection, jacobian = cv2.projectPoints(nose_3d, rot_vec, trans_vec, cam_matrix, dist_matrix)
 
                 # 2D 이미지 상의 코 위치 좌표
                 p1 = (int(nose_2d[0]), int(nose_2d[1]))
@@ -527,34 +518,34 @@ with map_face_mesh.FaceMesh(max_num_faces=1,refine_landmarks=True,min_detection_
                 # cv2.putText(printx, printy, (20, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
 
                 # message = say_hello() # 함수 호출하여 결과를 변수에 저장
-                # message = eyemessage
-                # print(message)  # 결과 출력(확인용)
-                # time.sleep(interval)  # 일정 시간 동안 대기
+                message = real_eye_message
+                print(message)  # 결과 출력(확인용)
+                time.sleep(interval)  # 일정 시간 동안 대기
 
         # 서버로 연결하겠다 if 연결이 안되있다면~ 연결이 되있다면 메세지를 보내겠다~
-        # if set_finish is True:
-        #     if is_connected is False:
-        #         try:
-        #             client_socket.connect((HOST, PORT))
-        #             is_connected = True
-        #         except ConnectionRefusedError:  # 연결이 거부됨
-        #             time.sleep(1)
-        #             continue  # 다시 연결 시도
-        #     else:
-        #         if message is not None:
-        #             # 입력한 message 전송
-        #             client_socket.sendall(message.encode())
-        #             # 메시지 수신
-        #             data = client_socket.recv(1024)
-        #             print('Received', repr(data.decode()))
-        #             message = None
+        if set_finish is True:
+            if is_connected is False:
+                try:
+                    client_socket.connect((HOST, PORT))
+                    is_connected = True
+                except ConnectionRefusedError:  # 연결이 거부됨
+                    time.sleep(1)
+                    continue  # 다시 연결 시도
+            else:
+                if message is not None:
+                    # 입력한 message 전송
+                    client_socket.sendall(message.encode())
+                    # 메시지 수신
+                    data = client_socket.recv(1024)
+                    print('Received', repr(data.decode()))
+                    message = None
            
         if count == 1:
-            cv.circle(frame, (240, 350), 30, (0, 0, 255), 2)
+            cv.circle(frame, (140, 350), 30, (0, 0, 255), 2)
             # utils.colorBackgroundText(frame, f'Look Left circle for 3 seconds ', FONTS, 1.0, (350, 150), 2, color[0], color[1], 8, 8)
             
         elif count == 2:
-            cv.circle(frame, (680, 350), 30, (0, 0, 255), 2)
+            cv.circle(frame, (780, 350), 30, (0, 0, 255), 2)
             # utils.colorBackgroundText(frame, f'Look Right Circle for 3 seconds', FONTS, 1.0, (350, 150), 2, color[0], color[1], 8, 8)
 
         elif count ==3:
